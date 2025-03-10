@@ -18,12 +18,12 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static files from the React frontend build
+app.use(express.static(path.join(__dirname, 'frontend/dist')));
 
 // Handle React routing, return all requests to React app
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'frontend/dist', 'index.html'));
 });
 
 // Basic error handler
