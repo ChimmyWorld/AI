@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "A community website with categories and media support",
   "main": "app.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node app.js",
+    "dev": "nodemon app.js",
     "test": "jest"
   },
   "dependencies": {
@@ -19,6 +23,7 @@
   },
   "devDependencies": {
     "jest": "^29.6.2",
-    "supertest": "^6.3.3"
+    "supertest": "^6.3.3",
+    "nodemon": "^3.0.1"
   }
 }
