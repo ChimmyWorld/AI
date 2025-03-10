@@ -23,7 +23,7 @@ import {
   Add as AddIcon
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
-import axios from 'axios';
+import api from '../api';
 
 export default function Home() {
   const { user } = useAuth();
@@ -44,9 +44,10 @@ export default function Home() {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/posts?category=${category}`);
+      const response = await api.get(`/posts?category=${category}`);
       setPosts(response.data);
     } catch (err) {
+      console.error("Error fetching posts:", err);
       setError('Failed to load posts');
     } finally {
       setLoading(false);
@@ -56,11 +57,12 @@ export default function Home() {
   const handleVote = async (postId, voteType) => {
     if (!user) return;
     try {
-      await axios.post(`/api/posts/${postId}/vote`, { type: voteType }, {
+      await api.post(`/posts/${postId}/vote`, { type: voteType }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       fetchPosts();
     } catch (err) {
+      console.error("Error voting:", err);
       setError('Failed to vote');
     }
   };
@@ -75,7 +77,7 @@ export default function Home() {
         formData.append('media', newPost.media);
       }
 
-      await axios.post('/api/posts', formData, {
+      await api.post('/posts', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -86,6 +88,7 @@ export default function Home() {
       setNewPost({ title: '', content: '', media: null });
       fetchPosts();
     } catch (err) {
+      console.error("Error creating post:", err);
       setError('Failed to create post');
     }
   };
@@ -105,7 +108,7 @@ export default function Home() {
             startIcon={<AddIcon />}
             onClick={() => setOpenNewPost(true)}
           >
-            Create Post
+            New Post
           </Button>
         )}
       </Box>
