@@ -13,18 +13,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from the frontend/dist directory
+app.use(express.static(path.join(__dirname, 'frontend/dist')));
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
 
-// Serve React frontend in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'frontend/dist')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend/dist/index.html'));
-  });
-}
+// Serve React app for all other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/dist/index.html'));
+});
 
 // Basic error handler
 app.use((err, req, res, next) => {
@@ -32,12 +32,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-// MongoDB connection with retry logic
+// MongoDB Connection
 const connectDB = async () => {
   try {
     console.log('Attempting to connect to MongoDB with URI:', config.MONGODB_URI);
-    await mongoose.connect(config.MONGODB_URI);
-    console.log('Successfully connected to MongoDB');
+    await mongoose.connect(config.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    console.log('Connected to MongoDB');
   } catch (err) {
     console.error('MongoDB connection error:', err);
     // Retry connection after 5 seconds
