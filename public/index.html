@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Community Forum</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #f6f7f8;
+            font-family: Arial, sans-serif;
+        }
+        .navbar {
+            background-color: #1a1a1b;
+            padding: 1rem;
+        }
+        .post-card {
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .category-tab {
+            cursor: pointer;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 20px;
+        }
+        .category-tab.active {
+            background-color: #0079d3;
+            color: white;
+        }
+        .vote-button {
+            background: none;
+            border: none;
+            color: #878a8c;
+            cursor: pointer;
+        }
+        .vote-button:hover {
+            color: #0079d3;
+        }
+        .media-preview {
+            max-width: 100%;
+            max-height: 500px;
+            margin: 10px 0;
+        }
+        .comment-section {
+            margin-top: 1rem;
+            padding-left: 1rem;
+            border-left: 2px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container">
+            <a class="navbar-brand">Community Forum</a>
+            <div class="d-flex" id="authSection">
+                <input type="email" class="form-control me-2" id="email" placeholder="Email">
+                <input type="text" class="form-control me-2" id="username" placeholder="Username">
+                <input type="password" class="form-control me-2" id="password" placeholder="Password">
+                <button class="btn btn-outline-light me-2" onclick="register()">Register</button>
+                <button class="btn btn-primary" onclick="login()">Login</button>
+            </div>
+            <div class="d-none" id="userSection">
+                <span class="text-light me-3" id="userInfo"></span>
+                <button class="btn btn-outline-light" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-center mb-4">
+            <div class="category-tab active" onclick="changeCategory('all')">All</div>
+            <div class="category-tab" onclick="changeCategory('free')">Free</div>
+            <div class="category-tab" onclick="changeCategory('qna')">Q&A</div>
+            <div class="category-tab" onclick="changeCategory('ai')">AI</div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div id="posts"></div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Create Post</h5>
+                        <form id="postForm" class="mt-3">
+                            <div class="mb-3">
+                                <input type="text" class="form-control" id="postTitle" placeholder="Title">
+                            </div>
+                            <div class="mb-3">
+                                <textarea class="form-control" id="postContent" rows="3" placeholder="Content"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <select class="form-control" id="postCategory">
+                                    <option value="free">Free</option>
+                                    <option value="qna">Q&A</option>
+                                    <option value="ai">AI</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Media (Images/Videos)</label>
+                                <input type="file" class="form-control" id="mediaFiles" multiple accept="image/*,video/*">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Post</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('token');
+        let currentCategory = 'all';
+
+        function updateAuthUI() {
+            const authSection = document.getElementById('authSection');
+            const userSection = document.getElementById('userSection');
+            const userInfo = document.getElementById('userInfo');
+            
+            if (token) {
+                authSection.classList.add('d-none');
+                userSection.classList.remove('d-none');
+                userInfo.textContent = localStorage.getItem('username');
+            } else {
+                authSection.classList.remove('d-none');
+                userSection.classList.add('d-none');
+            }
+        }
+
+        async function register() {
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        username: document.getElementById('username').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    token = data.token;
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('username', document.getElementById('username').value);
+                    updateAuthUI();
+                    loadPosts();
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                alert('Registration failed');
+            }
+        }
+
+        async function login() {
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    token = data.token;
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('username', document.getElementById('username').value);
+                    updateAuthUI();
+                    loadPosts();
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                alert('Login failed');
+            }
+        }
+
+        function logout() {
+            token = null;
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            updateAuthUI();
+        }
+
+        async function loadPosts() {
+            try {
+                const url = currentCategory === 'all' 
+                    ? '/api/posts'
+                    : `/api/posts/category/${currentCategory}`;
+                    
+                const response = await fetch(url);
+                const posts = await response.json();
+                
+                const postsContainer = document.getElementById('posts');
+                postsContainer.innerHTML = '';
+                
+                posts.forEach(post => {
+                    const postElement = createPostElement(post);
+                    postsContainer.appendChild(postElement);
+                });
+            } catch (error) {
+                console.error('Failed to load posts:', error);
+            }
+        }
+
+        function createPostElement(post) {
+            const div = document.createElement('div');
+            div.className = 'post-card';
+            
+            let mediaHtml = '';
+            if (post.media && post.media.length > 0) {
+                post.media.forEach(media => {
+                    if (media.type === 'image') {
+                        mediaHtml += `<img src="${media.url}" class="media-preview">`;
+                    } else if (media.type === 'video') {
+                        mediaHtml += `<video src="${media.url}" controls class="media-preview"></video>`;
+                    }
+                });
+            }
+
+            div.innerHTML = `
+                <div class="d-flex align-items-center mb-2">
+                    <span class="badge bg-primary me-2">${post.category}</span>
+                    <small class="text-muted">Posted by ${post.author.username}</small>
+                </div>
+                <h5>${post.title}</h5>
+                <p>${post.content}</p>
+                ${mediaHtml}
+                <div class="d-flex align-items-center">
+                    <button class="vote-button me-2" onclick="vote('${post._id}', 'up')">⬆</button>
+                    <span>${post.upvotes.length - post.downvotes.length}</span>
+                    <button class="vote-button ms-2" onclick="vote('${post._id}', 'down')">⬇</button>
+                    <button class="btn btn-link" onclick="toggleComments('${post._id}')">
+                        ${post.comments.length} comments
+                    </button>
+                </div>
+                <div id="comments-${post._id}" class="comment-section d-none">
+                    ${post.comments.map(comment => `
+                        <div class="mb-2">
+                            <small class="text-muted">${comment.author.username}</small>
+                            <p class="mb-1">${comment.content}</p>
+                        </div>
+                    `).join('')}
+                    <div class="mt-2">
+                        <input type="text" class="form-control form-control-sm" id="comment-${post._id}" placeholder="Add a comment">
+                        <button class="btn btn-sm btn-primary mt-1" onclick="addComment('${post._id}')">Comment</button>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        function changeCategory(category) {
+            currentCategory = category;
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            loadPosts();
+        }
+
+        async function vote(postId, voteType) {
+            if (!token) {
+                alert('Please login to vote');
+                return;
+            }
+            try {
+                const response = await fetch(`/api/posts/${postId}/vote`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ voteType })
+                });
+                if (response.ok) {
+                    loadPosts();
+                }
+            } catch (error) {
+                console.error('Failed to vote:', error);
+            }
+        }
+
+        function toggleComments(postId) {
+            const commentsSection = document.getElementById(`comments-${postId}`);
+            commentsSection.classList.toggle('d-none');
+        }
+
+        async function addComment(postId) {
+            if (!token) {
+                alert('Please login to comment');
+                return;
+            }
+            const content = document.getElementById(`comment-${postId}`).value;
+            try {
+                const response = await fetch(`/api/posts/${postId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ content })
+                });
+                if (response.ok) {
+                    loadPosts();
+                }
+            } catch (error) {
+                console.error('Failed to add comment:', error);
+            }
+        }
+
+        document.getElementById('postForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!token) {
+                alert('Please login to create a post');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('title', document.getElementById('postTitle').value);
+            formData.append('content', document.getElementById('postContent').value);
+            formData.append('category', document.getElementById('postCategory').value);
+
+            const mediaFiles = document.getElementById('mediaFiles').files;
+            for (let i = 0; i < mediaFiles.length; i++) {
+                formData.append('media', mediaFiles[i]);
+            }
+
+            try {
+                const response = await fetch('/api/posts', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                if (response.ok) {
+                    document.getElementById('postForm').reset();
+                    loadPosts();
+                }
+            } catch (error) {
+                console.error('Failed to create post:', error);
+            }
+        });
+
+        // Initial load
+        updateAuthUI();
+        loadPosts();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
