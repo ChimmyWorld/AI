@@ -1,14 +1,40 @@
 import axios from 'axios';
 
-// In production, use a relative path so it works regardless of domain
-const baseURL = process.env.NODE_ENV === 'production'
-  ? '/api'
-  : 'http://localhost:10000/api';
-
+// Create an axios instance with a base URL that works in both development and production
 const api = axios.create({
-  baseURL,
+  baseURL: process.env.NODE_ENV === 'production'
+    ? '/api'
+    : 'http://localhost:10000/api',
+  headers: {
+    'Content-Type': 'application/json'
+  },
   withCredentials: true
 });
+
+// Add a request interceptor to include auth token if available
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add a response interceptor for global error handling
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    console.error("API Error:", error.response || error);
+    return Promise.reject(error);
+  }
+);
 
 export const register = async (userData) => {
   try {

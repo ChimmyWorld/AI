@@ -11,9 +11,21 @@ const useAuth = create((set) => ({
       set({ loading: true, error: null });
       const response = await api.post('/auth/login', { username, password });
       const { token, user } = response.data;
+      
+      // Save auth data
       localStorage.setItem('token', token);
       localStorage.setItem('username', user.username);
-      set({ user: { username: user.username, _id: user._id }, loading: false });
+      
+      // Update state
+      set({ 
+        user: { 
+          _id: user._id,
+          username: user.username,
+          karma: user.karma 
+        }, 
+        loading: false 
+      });
+      
       return true;
     } catch (error) {
       console.error("Login error:", error);
@@ -33,10 +45,23 @@ const useAuth = create((set) => ({
         email,
         password
       });
+      
       const { token, user } = response.data;
+      
+      // Save auth data
       localStorage.setItem('token', token);
       localStorage.setItem('username', user.username);
-      set({ user: { username: user.username, _id: user._id }, loading: false });
+      
+      // Update state
+      set({ 
+        user: { 
+          _id: user._id,
+          username: user.username,
+          karma: user.karma 
+        }, 
+        loading: false 
+      });
+      
       return true;
     } catch (error) {
       console.error("Registration error:", error);

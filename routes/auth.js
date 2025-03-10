@@ -23,7 +23,17 @@ router.post('/register', async (req, res) => {
     await user.save();
     
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'your-secret-key');
-    res.status(201).json({ token, username: user.username });
+    
+    // Return both token and user object
+    res.status(201).json({ 
+      token, 
+      user: { 
+        _id: user._id, 
+        username: user.username,
+        email: user.email,
+        karma: user.karma 
+      } 
+    });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(400).json({ message: 'Registration failed: ' + error.message });
@@ -41,7 +51,17 @@ router.post('/login', async (req, res) => {
     }
     
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'your-secret-key');
-    res.json({ token, username: user.username });
+    
+    // Return both token and user object
+    res.json({ 
+      token, 
+      user: { 
+        _id: user._id, 
+        username: user.username,
+        email: user.email,
+        karma: user.karma 
+      } 
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(400).json({ message: 'Login failed: ' + error.message });
