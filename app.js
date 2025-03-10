@@ -11,6 +11,15 @@ const postRoutes = require('./routes/posts');
 
 const app = express();
 
+// Enable detailed logging for troubleshooting
+const requestLogger = (req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+  next();
+};
+
+app.use(requestLogger);
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -19,108 +28,91 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 
-// Determine if frontend build exists and print logs for debugging
-const distPath = path.join(__dirname, 'frontend/dist');
-const publicPath = path.join(__dirname, 'public');
-console.log('Checking for frontend build at:', distPath);
-console.log('Checking for public directory at:', publicPath);
+// Serve static assets - use public directory as primary since that's where Vite builds to
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '1h',
+  setHeaders: (res, path) => {
+    if (path.endsWith('.html')) {
+      // Don't cache HTML files
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
+}));
 
-let staticPath;
-if (fs.existsSync(distPath)) {
-  console.log('Frontend dist directory found! Serving from frontend/dist');
-  staticPath = distPath;
-} else if (fs.existsSync(publicPath)) {
-  console.log('Public directory found! Serving from public');
-  staticPath = publicPath;
-} else {
-  console.log('WARNING: Neither frontend/dist nor public directory exists. Cannot serve static files.');
-  // Create a fallback public directory with an error page
-  fs.mkdirSync(publicPath, { recursive: true });
-  const errorHtml = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Application Error</title>
-      <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-        .error-container { max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; padding: 30px; border-radius: 5px; }
-        h1 { color: #d32f2f; }
-        .actions { margin-top: 30px; }
-      </style>
-    </head>
-    <body>
-      <div class="error-container">
-        <h1>Application Error</h1>
-        <p>The application could not load properly because no static files were found.</p>
-        <p>This could be because the build process did not complete successfully.</p>
-        <div class="actions">
-          <p>Please check the server logs for more information.</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-  fs.writeFileSync(path.join(publicPath, 'index.html'), errorHtml);
-  staticPath = publicPath;
-}
+// Create simple HTML for error cases
+const errorHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community Forum</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h1 { color: #d32f2f; }
+    .message { line-height: 1.6; }
+    .action { margin-top: 20px; }
+    button { background: #1976d2; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+    pre { background: #f5f5f5; padding: 15px; border-radius: 4px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Application Error</h1>
+    <div class="message">
+      <p>We're having trouble loading the application. This might be due to:</p>
+      <ul>
+        <li>A problem with the build or deployment process</li>
+        <li>Missing static files</li>
+        <li>Server configuration issues</li>
+      </ul>
+    </div>
+    <pre>Server time: ${new Date().toISOString()}</pre>
+    <div class="action">
+      <button onclick="window.location.reload()">Try Again</button>
+    </div>
+  </div>
+</body>
+</html>
+`;
 
-// Serve static files
-app.use(express.static(staticPath));
+// Direct route for health check and troubleshooting
+app.get('/health', (req, res) => {
+  const publicExists = fs.existsSync(path.join(__dirname, 'public'));
+  const publicIndexExists = fs.existsSync(path.join(__dirname, 'public/index.html'));
+  const assetsExist = fs.existsSync(path.join(__dirname, 'public/assets'));
 
-// Handle React routing, return all requests to React app
+  res.json({
+    status: 'ok',
+    environment: process.env.NODE_ENV || 'development',
+    directories: {
+      publicExists,
+      publicIndexExists,
+      assetsExist,
+      cwd: __dirname,
+      files: publicExists ? fs.readdirSync(path.join(__dirname, 'public')) : []
+    }
+  });
+});
+
+// Handle React routing with special error handling
 app.get('*', (req, res) => {
-  const indexPath = path.join(staticPath, 'index.html');
+  const indexPath = path.join(__dirname, 'public/index.html');
   
   if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(500).send(`
-      <html>
-        <head>
-          <title>Application Error</title>
-          <style>
-            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-            .error-container { max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; padding: 30px; border-radius: 5px; }
-            h1 { color: #d32f2f; }
-            pre { text-align: left; background: #f5f5f5; padding: 15px; border-radius: 5px; overflow: auto; }
-          </style>
-        </head>
-        <body>
-          <div class="error-container">
-            <h1>Application Error</h1>
-            <p>The application could not serve the requested page.</p>
-            <p>Index.html file not found at: ${indexPath}</p>
-            <pre>Server Time: ${new Date().toISOString()}</pre>
-          </div>
-        </body>
-      </html>
-    `);
+    return res.sendFile(indexPath);
   }
+  
+  // If no index.html found, create a simple one
+  console.error('ERROR: No index.html found!');
+  res.send(errorHtml);
 });
 
 // Basic error handler
 app.use((err, req, res, next) => {
-  console.error('Application error:', err.stack);
-  res.status(500).send(`
-    <html>
-      <head>
-        <title>Server Error</title>
-        <style>
-          body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-          .error-container { max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; padding: 30px; border-radius: 5px; }
-          h1 { color: #d32f2f; }
-          pre { text-align: left; background: #f5f5f5; padding: 15px; border-radius: 5px; overflow: auto; }
-        </style>
-      </head>
-      <body>
-        <div class="error-container">
-          <h1>Server Error</h1>
-          <p>The server encountered an error and could not complete your request.</p>
-          <pre>${err.stack}</pre>
-        </div>
-      </body>
-    </html>
-  `);
+  console.error('Application error:', err);
+  res.status(500).send(errorHtml);
 });
 
 // MongoDB Connection
@@ -138,4 +130,8 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 
 app.listen(PORT, () => {
   console.log(`Server running in ${NODE_ENV} mode on port ${PORT}`);
+  console.log(`Public directory exists: ${fs.existsSync(path.join(__dirname, 'public'))}`);
+  if (fs.existsSync(path.join(__dirname, 'public'))) {
+    console.log('Public directory contents:', fs.readdirSync(path.join(__dirname, 'public')));
+  }
 });
