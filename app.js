@@ -3,6 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+require('dotenv').config();
+
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
 const userRoutes = require('./routes/users');
@@ -12,8 +14,6 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-
-// Serve static files from the frontend/dist directory
 app.use(express.static(path.join(__dirname, 'frontend/dist')));
 
 // API Routes
@@ -33,26 +33,18 @@ app.use((err, req, res, next) => {
 });
 
 // MongoDB Connection
-const connectDB = async () => {
-  try {
-    console.log('Attempting to connect to MongoDB with URI:', config.MONGODB_URI);
-    await mongoose.connect(config.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
-    console.log('Connected to MongoDB');
-  } catch (err) {
+console.log('Attempting to connect to MongoDB with URI:', config.MONGODB_URI);
+mongoose.connect(config.MONGODB_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => {
     console.error('MongoDB connection error:', err);
-    // Retry connection after 5 seconds
-    setTimeout(connectDB, 5000);
-  }
-};
-
-// Connect to MongoDB
-connectDB();
+    process.exit(1);
+  });
 
 // Start server
 const PORT = process.env.PORT || config.PORT;
+const NODE_ENV = process.env.NODE_ENV || config.NODE_ENV;
+
 app.listen(PORT, () => {
-  console.log(`Server running in ${config.NODE_ENV} mode on port ${PORT}`);
+  console.log(`Server running in ${NODE_ENV} mode on port ${PORT}`);
 });
