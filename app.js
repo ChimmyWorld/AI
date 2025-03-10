@@ -7,23 +7,23 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
-const userRoutes = require('./routes/users');
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'frontend/dist')));
 
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
-app.use('/api/users', userRoutes);
 
-// Serve React app for all other routes
+// Serve static files from the React app
+app.use(express.static('frontend/dist'));
+
+// Handle React routing, return all requests to React app
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend/dist/index.html'));
+  res.sendFile(path.join(__dirname, 'frontend', 'dist', 'index.html'));
 });
 
 // Basic error handler
@@ -42,8 +42,8 @@ mongoose.connect(config.MONGODB_URI)
   });
 
 // Start server
-const PORT = process.env.PORT || config.PORT;
-const NODE_ENV = process.env.NODE_ENV || config.NODE_ENV;
+const PORT = process.env.PORT || 10000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 app.listen(PORT, () => {
   console.log(`Server running in ${NODE_ENV} mode on port ${PORT}`);
