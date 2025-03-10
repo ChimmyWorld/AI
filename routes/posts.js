@@ -4,6 +4,7 @@ const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const Post = require('../models/Post');
 const auth = require('../middleware/auth');
+const Notification = require('../models/notification');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -104,7 +105,7 @@ router.get('/:id', async (req, res) => {
 // Add comment
 router.post('/:id/comments', auth, async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const post = await Post.findById(req.params.id).populate('author', 'username');
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -115,7 +116,25 @@ router.post('/:id/comments', auth, async (req, res) => {
     });
 
     await post.save();
-    res.status(201).json(post);
+
+    // Create notification for post author if commenter is not the post author
+    if (post.author && post.author._id.toString() !== req.userId.toString()) {
+      const notification = new Notification({
+        user: post.author._id,
+        message: `${req.username || 'Someone'} commented on your post: "${post.title}"`,
+        postId: post._id,
+        read: false
+      });
+      await notification.save();
+    }
+
+    // Return the post with populated authors
+    const updatedPost = await Post.findById(req.params.id)
+      .populate('author', 'username karma')
+      .populate('comments.author', 'username karma')
+      .exec();
+    
+    res.status(201).json(updatedPost);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -149,6 +168,126 @@ router.post('/:id/vote', auth, async (req, res) => {
     res.json(post);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+});
+
+// Update post
+router.put('/:id', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, content, category } = req.body;
+    
+    const post = await Post.findById(id);
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    // Check if user is the author of the post
+    if (post.author.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Not authorized to update this post' });
+    }
+    
+    // Update post
+    const updatedPost = await Post.findByIdAndUpdate(
+      id, 
+      { 
+        title, 
+        content,
+        category: category || post.category,
+        updatedAt: Date.now()
+      },
+      { new: true }
+    );
+    
+    res.json(updatedPost);
+  } catch (err) {
+    console.error('Error updating post:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update comment
+router.put('/:postId/comments/:commentId', auth, async (req, res) => {
+  try {
+    const { postId, commentId } = req.params;
+    const { content } = req.body;
+    
+    const post = await Post.findById(postId);
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    // Find the comment
+    const comment = post.comments.id(commentId);
+    
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+    
+    // Check if user is the author of the comment
+    if (comment.author.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Not authorized to update this comment' });
+    }
+    
+    // Update comment
+    comment.content = content;
+    comment.updatedAt = Date.now();
+    
+    await post.save();
+    
+    // Return updated post with populated authors
+    const updatedPost = await Post.findById(postId)
+      .populate('author', 'username karma')
+      .populate('comments.author', 'username karma')
+      .exec();
+    
+    res.json(updatedPost);
+  } catch (err) {
+    console.error('Error updating comment:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete comment
+router.delete('/:postId/comments/:commentId', auth, async (req, res) => {
+  try {
+    const { postId, commentId } = req.params;
+    
+    const post = await Post.findById(postId);
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    // Find the comment
+    const comment = post.comments.id(commentId);
+    
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+    
+    // Check if user is the author of the comment
+    if (comment.author.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Not authorized to delete this comment' });
+    }
+    
+    // Remove the comment
+    post.comments.pull(commentId);
+    
+    await post.save();
+    
+    // Return updated post with populated authors
+    const updatedPost = await Post.findById(postId)
+      .populate('author', 'username karma')
+      .populate('comments.author', 'username karma')
+      .exec();
+    
+    res.json(updatedPost);
+  } catch (err) {
+    console.error('Error deleting comment:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

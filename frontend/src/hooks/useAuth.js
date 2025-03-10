@@ -1,10 +1,31 @@
 import create from 'zustand';
 import api from '../api'; // Use our configured API client
 
-const useAuth = create((set) => ({
+const useAuth = create((set, get) => ({
   user: null,
-  loading: false,
+  loading: true,
   error: null,
+
+  // Initialize auth by checking localStorage and fetching profile
+  initialize: async () => {
+    try {
+      set({ loading: true });
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        set({ user: null, loading: false });
+        return;
+      }
+      
+      const response = await api.get('/auth/profile');
+      set({ user: response.data, loading: false });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error);
+      set({ user: null, loading: false });
+      localStorage.removeItem('token');
+    }
+  },
 
   login: async (username, password) => {
     try {
@@ -12,26 +33,15 @@ const useAuth = create((set) => ({
       const response = await api.post('/auth/login', { username, password });
       const { token, user } = response.data;
       
-      // Save auth data
       localStorage.setItem('token', token);
-      localStorage.setItem('username', user.username);
-      
-      // Update state
-      set({ 
-        user: { 
-          _id: user._id,
-          username: user.username,
-          karma: user.karma 
-        }, 
-        loading: false 
-      });
+      set({ user, loading: false });
       
       return true;
     } catch (error) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
       set({ 
-        error: error.response?.data?.message || 'Login failed', 
-        loading: false 
+        loading: false, 
+        error: error.response?.data?.message || 'Login failed. Please try again.' 
       });
       return false;
     }
@@ -40,34 +50,18 @@ const useAuth = create((set) => ({
   register: async (username, email, password) => {
     try {
       set({ loading: true, error: null });
-      const response = await api.post('/auth/register', {
-        username,
-        email,
-        password
-      });
-      
+      const response = await api.post('/auth/register', { username, email, password });
       const { token, user } = response.data;
       
-      // Save auth data
       localStorage.setItem('token', token);
-      localStorage.setItem('username', user.username);
-      
-      // Update state
-      set({ 
-        user: { 
-          _id: user._id,
-          username: user.username,
-          karma: user.karma 
-        }, 
-        loading: false 
-      });
+      set({ user, loading: false });
       
       return true;
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error('Registration error:', error);
       set({ 
-        error: error.response?.data?.message || 'Registration failed', 
-        loading: false 
+        loading: false, 
+        error: error.response?.data?.message || 'Registration failed. Please try again.' 
       });
       return false;
     }
@@ -75,17 +69,40 @@ const useAuth = create((set) => ({
 
   logout: () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('username');
     set({ user: null });
   },
 
-  checkAuth: () => {
-    const token = localStorage.getItem('token');
-    const username = localStorage.getItem('username');
-    if (token && username) {
+  updateProfile: async (userData) => {
+    try {
+      set({ loading: true, error: null });
+      const response = await api.put('/api/users/profile', userData);
+      
+      if (response.data) {
+        set({ user: response.data, loading: false });
+        return { success: true };
+      }
+    } catch (error) {
+      console.error('Profile update error:', error);
+      set({ 
+        loading: false, 
+        error: error.response?.data?.message || 'Failed to update profile. Please try again.' 
+      });
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'Failed to update profile. Please try again.' 
+      };
+    }
+  },
+
+  // For demo/testing purposes only
+  setDummyUser: (username) => {
+    if (username) {
       set({ user: { username } });
     }
   },
 }));
+
+// Add an initialization call when imported
+useAuth.getState().initialize();
 
 export { useAuth };

@@ -238,7 +238,7 @@ export default function PostDetail() {
                 {comment.author?.username ? comment.author.username.charAt(0) : '?'}
               </Avatar>
               <Typography variant="body2" fontWeight="bold">
-                {comment.author?.username || 'Anonymous'}
+                {comment.author && comment.author.username ? comment.author.username : 'Anonymous'}
               </Typography>
             </Box>
             <Typography variant="body1" sx={{ pl: 4 }}>

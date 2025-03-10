@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -14,7 +14,7 @@ import {
   Alert
 } from '@mui/material';
 import { useAuth } from '../hooks/useAuth';
-import axios from 'axios';
+import api from '../api';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -31,41 +31,64 @@ export default function Profile() {
     confirmPassword: ''
   });
 
+  // Update form data when user data changes
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        username: user.username || '',
+        email: user.email || ''
+      }));
+    }
+  }, [user]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
+
     try {
       if (formData.newPassword !== formData.confirmPassword) {
         setError('New passwords do not match');
         return;
       }
 
-      const response = await axios.put('/api/users/profile', {
+      const response = await api.put('/users/profile', {
         username: formData.username,
         email: formData.email,
         currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        newPassword: formData.newPassword || undefined
       });
 
       setSuccess('Profile updated successfully');
       setIsEditing(false);
-      // Update local user data
+      
+      // Update localStorage with new username
       localStorage.setItem('username', formData.username);
+      
+      // Reset password fields
+      setFormData(prev => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }));
+      
+      // Reload the page to refresh user data
+      window.location.reload();
     } catch (error) {
+      console.error('Profile update error:', error);
       setError(error.response?.data?.message || 'Failed to update profile');
     }
   };
 
   const handleDelete = async () => {
     try {
-      await axios.delete('/api/users/profile', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
+      await api.delete('/users/profile');
       logout();
       navigate('/');
     } catch (error) {

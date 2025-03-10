@@ -8,6 +8,8 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
+const notificationRoutes = require('./routes/notifications');
+const userRoutes = require('./routes/users');
 
 const app = express();
 
@@ -27,6 +29,8 @@ app.use(express.json());
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/users', userRoutes);
 
 // Serve static assets - use public directory as primary since that's where Vite builds to
 app.use(express.static(path.join(__dirname, 'public'), {
@@ -130,6 +134,7 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 
 app.listen(PORT, () => {
   console.log(`Server running in ${NODE_ENV} mode on port ${PORT}`);
+  console.log(`Server URL: ${process.env.RENDER_EXTERNAL_URL || 'http://localhost:' + PORT}`);
   console.log(`Public directory exists: ${fs.existsSync(path.join(__dirname, 'public'))}`);
   if (fs.existsSync(path.join(__dirname, 'public'))) {
     console.log('Public directory contents:', fs.readdirSync(path.join(__dirname, 'public')));

@@ -17,7 +17,12 @@ import {
   TextField,
   Menu,
   MenuItem,
-  Collapse
+  Collapse,
+  Paper,
+  FormControl,
+  InputLabel,
+  Select,
+  CloudUploadIcon
 } from '@mui/material';
 import {
   ArrowUpward as UpvoteIcon,
@@ -25,7 +30,15 @@ import {
   Comment as CommentIcon,
   Add as AddIcon,
   Delete as DeleteIcon,
-  MoreVert as MoreIcon
+  MoreVert as MoreIcon,
+  NewReleases as NewReleasesIcon,
+  Whatshot as WhatshotIcon,
+  TrendingUp as TrendingUpIcon,
+  ArrowUpward as ArrowUpwardIcon,
+  ArrowDownward as ArrowDownwardIcon,
+  Chat as ChatIcon,
+  Share as ShareIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import api from '../api';
@@ -36,34 +49,53 @@ export default function Home() {
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [openNewPost, setOpenNewPost] = useState(false);
-  const [newPost, setNewPost] = useState({ title: '', content: '', media: null });
+  const [newPost, setNewPost] = useState({ title: '', content: '', media: null, category: 'free' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
   const [openComments, setOpenComments] = useState({});
   const [commentText, setCommentText] = useState('');
+  const [sortBy, setSortBy] = useState('new'); // 'new', 'hot', 'top'
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editPostData, setEditPostData] = useState({ title: '', content: '', category: '' });
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editCommentText, setEditCommentText] = useState('');
 
-  // Get category from URL params
-  const category = new URLSearchParams(location.search).get('category') || 'free';
-
+  // Update posts list filtering based on category
   useEffect(() => {
     fetchPosts();
-  }, [category]);
+  }, [sortBy]);
 
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      let endpoint = category === 'all' ? '/posts' : `/posts/category/${category}`;
-      const response = await api.get(endpoint);
-      setPosts(response.data);
+      let query = '';
+      
+      if (sortBy && sortBy !== 'all') {
+        query = `?sort=${sortBy}`;
+      }
+      
+      const response = await api.get(`/posts${query}`);
+      const postsWithComments = await Promise.all(
+        response.data.map(async (post) => {
+          // Get comments for each post
+          const commentsResponse = await api.get(`/comments/${post._id}`);
+          return { ...post, comments: commentsResponse.data };
+        })
+      );
+      setPosts(postsWithComments);
+      setError('');
     } catch (err) {
-      console.error("Error fetching posts:", err);
-      setError('Failed to load posts');
+      setError('Failed to load posts. Please try again later.');
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  // Get category from URL params
+  const category = new URLSearchParams(location.search).get('category') || 'all';
 
   const handleOpenMenu = (event, post) => {
     setMenuAnchor(event.currentTarget);
@@ -75,18 +107,16 @@ export default function Home() {
     setSelectedPost(null);
   };
 
-  const handleDeletePost = async () => {
-    if (!selectedPost) return;
-    
+  const handleDeletePost = async (postId) => {
     try {
-      await api.delete(`/posts/${selectedPost._id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      fetchPosts();
-      handleCloseMenu();
+      if (window.confirm('Are you sure you want to delete this post?')) {
+        await api.delete(`/posts/${postId}`);
+        setPosts(posts.filter(p => p._id !== postId));
+        handleCloseMenu();
+      }
     } catch (err) {
-      console.error("Error deleting post:", err);
-      setError('Failed to delete post');
+      console.error('Failed to delete post:', err);
+      setError('Failed to delete post. Please try again.');
     }
   };
 
@@ -108,7 +138,7 @@ export default function Home() {
       const formData = new FormData();
       formData.append('title', newPost.title);
       formData.append('content', newPost.content);
-      formData.append('category', category);
+      formData.append('category', newPost.category);
       
       if (newPost.media) {
         formData.append('media', newPost.media);
@@ -122,7 +152,7 @@ export default function Home() {
       });
 
       setOpenNewPost(false);
-      setNewPost({ title: '', content: '', media: null });
+      setNewPost({ title: '', content: '', media: null, category: 'free' });
       fetchPosts();
     } catch (err) {
       console.error("Error creating post:", err);
@@ -141,15 +171,25 @@ export default function Home() {
     if (!commentText.trim()) return;
 
     try {
-      await api.post(`/posts/${postId}/comments`, 
+      const response = await api.post(`/posts/${postId}/comments`, 
         { content: commentText },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
+      setPosts(posts.map(p => p._id === postId ? response.data : p));
       setCommentText('');
-      fetchPosts();
     } catch (err) {
       console.error("Error adding comment:", err);
       setError('Failed to add comment');
+    }
+  };
+
+  const handleDeleteComment = async (postId, commentId) => {
+    try {
+      const response = await api.delete(`/posts/${postId}/comments/${commentId}`);
+      setPosts(posts.map(p => p._id === postId ? response.data : p));
+    } catch (err) {
+      console.error('Failed to delete comment:', err);
+      setError('Failed to delete comment. Please try again.');
     }
   };
 
@@ -157,194 +197,605 @@ export default function Home() {
     navigate(`/post/${postId}`);
   };
 
+  const handleEditPost = async (postId) => {
+    try {
+      const post = posts.find(p => p._id === postId);
+      if (!post) return;
+      
+      setEditingPostId(postId);
+      setEditPostData({
+        title: post.title,
+        content: post.content,
+        category: post.category
+      });
+    } catch (err) {
+      console.error('Error preparing post for edit:', err);
+    }
+  };
+
+  const handleUpdatePost = async () => {
+    try {
+      const response = await api.put(`/posts/${editingPostId}`, editPostData);
+      setPosts(posts.map(p => p._id === editingPostId ? response.data : p));
+      setEditingPostId(null);
+      setEditPostData({ title: '', content: '', category: '' });
+    } catch (err) {
+      console.error('Failed to update post:', err);
+      setError('Failed to update post. Please try again.');
+    }
+  };
+
+  const handleEditComment = (postId, commentId, content) => {
+    setEditingCommentId(commentId);
+    setEditCommentText(content);
+  };
+
+  const handleUpdateComment = async (postId, commentId) => {
+    try {
+      const response = await api.put(`/posts/${postId}/comments/${commentId}`, {
+        content: editCommentText
+      });
+      setPosts(posts.map(p => p._id === postId ? response.data : p));
+      setEditingCommentId(null);
+      setEditCommentText('');
+    } catch (err) {
+      console.error('Failed to update comment:', err);
+      setError('Failed to update comment. Please try again.');
+    }
+  };
+
   if (loading) return <Typography>Loading...</Typography>;
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
     <Box>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" sx={{ textTransform: 'capitalize' }}>
-          {category} Posts
+      {/* Category and post creation controls */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+        <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: '#1A1A1B' }}>
+          {category === 'all' ? 'Home' : category.charAt(0).toUpperCase() + category.slice(1)}
         </Typography>
-        {user && (
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setOpenNewPost(true)}
-          >
-            New Post
-          </Button>
-        )}
+        
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {user && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenNewPost(true)}
+              sx={{
+                backgroundColor: '#FF4500',
+                '&:hover': { backgroundColor: '#E03D00' },
+                borderRadius: 5,
+                px: 3
+              }}
+            >
+              New Post
+            </Button>
+          )}
+          <Box sx={{ display: 'flex', ml: 2, backgroundColor: '#f6f7f8', borderRadius: 2 }}>
+            <Button
+              variant={sortBy === 'new' ? 'contained' : 'text'}
+              onClick={() => setSortBy('new')}
+              sx={{ 
+                borderRadius: '16px 0 0 16px',
+                backgroundColor: sortBy === 'new' ? '#FF4500' : 'transparent',
+                color: sortBy === 'new' ? 'white' : 'inherit',
+                '&:hover': { backgroundColor: sortBy === 'new' ? '#E03D00' : 'rgba(255,69,0,0.1)' }
+              }}
+              startIcon={<NewReleasesIcon />}
+            >
+              New
+            </Button>
+            <Button
+              variant={sortBy === 'hot' ? 'contained' : 'text'}
+              onClick={() => setSortBy('hot')}
+              sx={{ 
+                borderRadius: 0,
+                backgroundColor: sortBy === 'hot' ? '#FF4500' : 'transparent',
+                color: sortBy === 'hot' ? 'white' : 'inherit',
+                '&:hover': { backgroundColor: sortBy === 'hot' ? '#E03D00' : 'rgba(255,69,0,0.1)' }
+              }}
+              startIcon={<WhatshotIcon />}
+            >
+              Hot
+            </Button>
+            <Button
+              variant={sortBy === 'top' ? 'contained' : 'text'}
+              onClick={() => setSortBy('top')}
+              sx={{ 
+                borderRadius: '0 16px 16px 0',
+                backgroundColor: sortBy === 'top' ? '#FF4500' : 'transparent',
+                color: sortBy === 'top' ? 'white' : 'inherit',
+                '&:hover': { backgroundColor: sortBy === 'top' ? '#E03D00' : 'rgba(255,69,0,0.1)' }
+              }}
+              startIcon={<TrendingUpIcon />}
+            >
+              Top
+            </Button>
+          </Box>
+        </Box>
       </Box>
 
+      {/* Posts list */}
       <Stack spacing={2}>
-        {posts.map(post => (
-          <Card key={post._id}>
-            <CardContent>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <IconButton
-                    onClick={() => handleVote(post._id, 'up')}
-                    color={post.upvotes?.includes(user?._id) ? 'primary' : 'default'}
-                  >
-                    <UpvoteIcon />
-                  </IconButton>
-                  <Typography>{(post.upvotes?.length || 0) - (post.downvotes?.length || 0)}</Typography>
-                  <IconButton
-                    onClick={() => handleVote(post._id, 'down')}
-                    color={post.downvotes?.includes(user?._id) ? 'primary' : 'default'}
-                  >
-                    <DownvoteIcon />
-                  </IconButton>
+        {posts.length === 0 ? (
+          <Paper sx={{ p: 3, textAlign: 'center', borderRadius: 2 }}>
+            <Typography variant="h6">No posts found in this category</Typography>
+            {user && (
+              <Button
+                variant="contained"
+                onClick={() => setOpenNewPost(true)}
+                sx={{ mt: 2, backgroundColor: '#FF4500', '&:hover': { backgroundColor: '#E03D00' } }}
+              >
+                Create First Post
+              </Button>
+            )}
+          </Paper>
+        ) : (
+          posts.map((post) => (
+            <Paper 
+              key={post._id} 
+              elevation={0}
+              sx={{ 
+                display: 'flex', 
+                mb: 2, 
+                borderRadius: 2,
+                border: '1px solid #ccc',
+                '&:hover': {
+                  border: '1px solid #898989'
+                }
+              }}
+            >
+              {/* Vote buttons column */}
+              <Box sx={{ 
+                p: 1, 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center',
+                backgroundColor: '#F8F9FA',
+                borderRadius: '8px 0 0 8px',
+                minWidth: '40px'
+              }}>
+                <IconButton 
+                  size="small" 
+                  onClick={() => handleVote(post._id, 'upvote')}
+                  sx={{ 
+                    color: post.userVote === 'upvote' ? '#FF4500' : 'inherit',
+                    '&:hover': { color: '#FF4500' }
+                  }}
+                >
+                  <ArrowUpwardIcon />
+                </IconButton>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontWeight: 'bold',
+                    color: post.userVote === 'upvote' 
+                      ? '#FF4500' 
+                      : post.userVote === 'downvote' 
+                        ? '#7193FF' 
+                        : 'inherit'
+                  }}
+                >
+                  {post.votes}
+                </Typography>
+                <IconButton 
+                  size="small" 
+                  onClick={() => handleVote(post._id, 'downvote')}
+                  sx={{ 
+                    color: post.userVote === 'downvote' ? '#7193FF' : 'inherit',
+                    '&:hover': { color: '#7193FF' }
+                  }}
+                >
+                  <ArrowDownwardIcon />
+                </IconButton>
+              </Box>
+              
+              {/* Post content */}
+              <Box sx={{ p: 2, width: '100%' }}>
+                {/* Post metadata */}
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Posted in {post.category.charAt(0).toUpperCase() + post.category.slice(1)} by{' '}
+                    <Typography component="span" variant="caption" fontWeight="bold">
+                      {post.author?.username || 'Anonymous'}
+                    </Typography>
+                    {' '}&bull;{' '}
+                    {new Date(post.createdAt).toLocaleString()}
+                  </Typography>
                 </Box>
-
-                <Box sx={{ flexGrow: 1, cursor: 'pointer' }} onClick={() => navigateToPostDetail(post._id)}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    <Avatar sx={{ width: 24, height: 24 }}>
-                      {post.author?.username ? post.author.username.charAt(0) : '?'}
-                    </Avatar>
-                    <Typography variant="body2">Posted by {post.author?.username || 'Anonymous'}</Typography>
-                    
-                    {user && post.author && user._id === post.author._id && (
-                      <IconButton 
-                        size="small" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenMenu(e, post);
-                        }}
+                
+                {/* Post title */}
+                <Typography 
+                  variant="h6" 
+                  component="h2" 
+                  sx={{ 
+                    fontWeight: 'medium', 
+                    cursor: 'pointer',
+                    '&:hover': { textDecoration: 'underline' }
+                  }}
+                  onClick={() => navigateToPostDetail(post._id)}
+                >
+                  {post.title}
+                </Typography>
+                
+                {/* Post content */}
+                <Typography variant="body2" sx={{ mt: 1, mb: 2 }}>
+                  {post.content.length > 300 
+                    ? post.content.substring(0, 300) + '...' 
+                    : post.content
+                  }
+                </Typography>
+                
+                {/* Post media */}
+                {post.media && (
+                  <Box sx={{ mt: 1, mb: 2, maxHeight: 400, overflow: 'hidden' }}>
+                    {post.media.includes('.mp4') ? (
+                      <video 
+                        controls 
+                        width="100%" 
+                        style={{ maxHeight: 400, objectFit: 'contain' }}
                       >
-                        <MoreIcon />
-                      </IconButton>
+                        <source src={post.media} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                    ) : (
+                      <img 
+                        src={post.media} 
+                        alt={post.title} 
+                        style={{ maxWidth: '100%', maxHeight: 400, objectFit: 'contain' }}
+                      />
                     )}
                   </Box>
+                )}
+                
+                {/* Post actions */}
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Button 
+                    startIcon={<ChatIcon />} 
+                    onClick={() => toggleComments(post._id)}
+                    sx={{ 
+                      textTransform: 'none', 
+                      color: 'text.secondary',
+                      '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' }
+                    }}
+                  >
+                    {post.comments ? post.comments.length : 0} Comments
+                  </Button>
                   
-                  <Typography variant="h6">{post.title}</Typography>
-                  <Typography variant="body1" sx={{ mt: 1 }}>{post.content}</Typography>
+                  <Button 
+                    startIcon={<ShareIcon />} 
+                    sx={{ 
+                      ml: 1, 
+                      textTransform: 'none', 
+                      color: 'text.secondary',
+                      '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' }
+                    }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.origin + '/post/' + post._id);
+                    }}
+                  >
+                    Share
+                  </Button>
                   
-                  {post.media && post.media.length > 0 && (
-                    <Box sx={{ mt: 2 }}>
-                      {post.media.map((mediaItem, index) => (
-                        <Box key={index} sx={{ mb: 1 }}>
-                          {mediaItem.type === 'image' ? (
-                            <img src={mediaItem.url} alt="Post media" style={{ maxWidth: '100%', maxHeight: '400px' }} />
-                          ) : mediaItem.type === 'video' ? (
-                            <video controls src={mediaItem.url} style={{ maxWidth: '100%', maxHeight: '400px' }} />
-                          ) : null}
-                        </Box>
-                      ))}
-                    </Box>
+                  {user && post.author && user._id === post.author._id && (
+                    <IconButton 
+                      size="small" 
+                      onClick={(e) => handleOpenMenu(e, post)}
+                      sx={{ ml: 1 }}
+                    >
+                      <MoreVertIcon />
+                    </IconButton>
                   )}
                 </Box>
               </Box>
-              
-              <Box 
-                sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleComments(post._id);
-                }}
-              >
-                <CommentIcon fontSize="small" />
-                <Typography variant="body2">{post.comments?.length || 0} comments</Typography>
-              </Box>
-              
-              <Collapse in={openComments[post._id]}>
-                <Box sx={{ mt: 2, pl: 2, borderLeft: '2px solid #eee' }}>
-                  {post.comments && post.comments.length > 0 ? (
-                    post.comments.map((comment, index) => (
-                      <Box key={index} sx={{ mb: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Avatar sx={{ width: 20, height: 20 }}>
-                            {comment.author?.username ? comment.author.username.charAt(0) : '?'}
-                          </Avatar>
-                          <Typography variant="body2" fontWeight="bold">
-                            {comment.author?.username || 'Anonymous'}
-                          </Typography>
-                        </Box>
-                        <Typography variant="body2" sx={{ mt: 0.5, pl: 3.5 }}>
-                          {comment.content}
-                        </Typography>
-                      </Box>
-                    ))
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">No comments yet</Typography>
-                  )}
-                  
-                  {user && (
-                    <Box sx={{ display: 'flex', mt: 2, gap: 1 }}>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        placeholder="Add a comment..."
-                        value={commentText}
-                        onChange={(e) => setCommentText(e.target.value)}
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleAddComment(post._id);
-                          }
-                        }}
-                      />
-                      <Button 
-                        variant="contained" 
-                        size="small"
-                        onClick={() => handleAddComment(post._id)}
-                      >
-                        Post
-                      </Button>
-                    </Box>
-                  )}
-                </Box>
-              </Collapse>
-            </CardContent>
-          </Card>
-        ))}
+            </Paper>
+          ))
+        )}
       </Stack>
 
       {/* New Post Dialog */}
-      <Dialog open={openNewPost} onClose={() => setOpenNewPost(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Create New Post</DialogTitle>
+      <Dialog open={openNewPost} onClose={() => setOpenNewPost(false)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>Create Post</DialogTitle>
         <DialogContent>
+          <FormControl fullWidth sx={{ mb: 2, mt: 1 }}>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={newPost.category || 'free'}
+              onChange={(e) => setNewPost({ ...newPost, category: e.target.value })}
+              label="Category"
+            >
+              <MenuItem value="free">Free</MenuItem>
+              <MenuItem value="qna">Q&A</MenuItem>
+              <MenuItem value="ai">AI</MenuItem>
+            </Select>
+          </FormControl>
           <TextField
             fullWidth
             label="Title"
+            margin="normal"
             value={newPost.title}
             onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
-            margin="normal"
           />
           <TextField
             fullWidth
             label="Content"
-            value={newPost.content}
-            onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
             multiline
             rows={4}
             margin="normal"
+            value={newPost.content}
+            onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
           />
-          <input
-            type="file"
-            accept="image/*,video/*"
-            onChange={(e) => setNewPost({ ...newPost, media: e.target.files[0] })}
-            style={{ marginTop: 16 }}
-          />
+          <Box sx={{ mt: 2 }}>
+            <input
+              accept="image/*,video/*"
+              style={{ display: 'none' }}
+              id="media-upload"
+              type="file"
+              onChange={(e) => {
+                if (e.target.files[0]) {
+                  setNewPost({ ...newPost, media: e.target.files[0] });
+                }
+              }}
+            />
+            <label htmlFor="media-upload">
+              <Button
+                variant="outlined"
+                component="span"
+                startIcon={<CloudUploadIcon />}
+                sx={{ borderRadius: 2 }}
+              >
+                Upload Media
+              </Button>
+            </label>
+            {newPost.media && (
+              <Typography variant="body2" sx={{ ml: 2, display: 'inline' }}>
+                {newPost.media.name}
+              </Typography>
+            )}
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenNewPost(false)}>Cancel</Button>
-          <Button onClick={handleNewPost} variant="contained">Post</Button>
+          <Button
+            onClick={handleNewPost}
+            variant="contained"
+            sx={{ 
+              borderRadius: 2,
+              backgroundColor: '#FF4500',
+              '&:hover': { backgroundColor: '#E03D00' }
+            }}
+          >
+            Post
+          </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Post Actions Menu */}
+      {/* Comments in Posts */}
+      {posts.map((post) => (
+        <Collapse in={openComments[post._id]} key={`comments-${post._id}`}>
+          <Paper 
+            sx={{ 
+              mb: 2, 
+              p: 2, 
+              borderRadius: 2,
+              backgroundColor: '#F8F9FA',
+              ml: 3,
+              mr: 0,
+              border: '1px solid #ccc',
+            }}
+          >
+            {/* Comment form */}
+            {user && (
+              <Box sx={{ display: 'flex', mb: 3, gap: 1, alignItems: 'flex-start' }}>
+                <Avatar 
+                  sx={{ 
+                    width: 32, 
+                    height: 32, 
+                    bgcolor: '#FF4500',
+                    fontSize: '0.875rem'
+                  }}
+                >
+                  {user.username ? user.username[0].toUpperCase() : '?'}
+                </Avatar>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="What are your thoughts?"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  multiline
+                  minRows={1}
+                  maxRows={4}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      backgroundColor: 'white'
+                    }
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => handleAddComment(post._id)}
+                  disabled={!commentText.trim()}
+                  sx={{ 
+                    borderRadius: 2,
+                    backgroundColor: commentText.trim() ? '#FF4500' : 'grey.400',
+                    '&:hover': { 
+                      backgroundColor: commentText.trim() ? '#E03D00' : 'grey.400' 
+                    },
+                    textTransform: 'none',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Comment
+                </Button>
+              </Box>
+            )}
+
+            {/* Comments list */}
+            <Box>
+              {post.comments && post.comments.length > 0 ? (
+                post.comments.map((comment) => (
+                  <Box 
+                    key={comment._id} 
+                    sx={{ 
+                      mb: 2, 
+                      pb: 2, 
+                      borderBottom: '1px solid #eee',
+                      '&:last-child': {
+                        borderBottom: 'none',
+                        mb: 0,
+                        pb: 0
+                      }
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      <Avatar 
+                        sx={{ 
+                          width: 24, 
+                          height: 24,
+                          fontSize: '0.75rem',
+                          bgcolor: 'grey.400'
+                        }}
+                      >
+                        {comment.author?.username ? comment.author.username[0].toUpperCase() : '?'}
+                      </Avatar>
+                      <Typography variant="body2" fontWeight="bold">
+                        {comment.author?.username || 'Anonymous'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        • {new Date(comment.createdAt).toLocaleString()}
+                      </Typography>
+                      
+                      {user && comment.author && user._id === comment.author._id && (
+                        <Box sx={{ ml: 'auto', display: 'flex' }}>
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleEditComment(post._id, comment._id, comment.content)}
+                            sx={{ p: 0.5 }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleDeleteComment(post._id, comment._id)}
+                            sx={{ p: 0.5 }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      )}
+                    </Box>
+                    
+                    {editingCommentId === comment._id ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', ml: 4, mt: 1 }}>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          value={editCommentText}
+                          onChange={(e) => setEditCommentText(e.target.value)}
+                          multiline
+                          minRows={1}
+                          maxRows={4}
+                          sx={{ mb: 1 }}
+                        />
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                          <Button 
+                            size="small" 
+                            onClick={() => setEditingCommentId(null)}
+                            sx={{ textTransform: 'none' }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            size="small" 
+                            variant="contained" 
+                            onClick={() => handleUpdateComment(post._id, comment._id)}
+                            sx={{ 
+                              textTransform: 'none',
+                              backgroundColor: '#FF4500',
+                              '&:hover': { backgroundColor: '#E03D00' }
+                            }}
+                          >
+                            Save
+                          </Button>
+                        </Box>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" sx={{ ml: 4 }}>
+                        {comment.content}
+                      </Typography>
+                    )}
+                  </Box>
+                ))
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                  No comments yet. Be the first to share your thoughts!
+                </Typography>
+              )}
+            </Box>
+          </Paper>
+        </Collapse>
+      ))}
+
+      {/* Post menu for edit/delete */}
       <Menu
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}
         onClose={handleCloseMenu}
       >
-        <MenuItem onClick={handleDeletePost} sx={{ color: 'error.main' }}>
+        <MenuItem onClick={() => handleEditPost(selectedPost._id)} sx={{ color: 'primary.main' }}>
+          <EditIcon fontSize="small" sx={{ mr: 1 }} />
+          Edit Post
+        </MenuItem>
+        <MenuItem onClick={() => handleDeletePost(selectedPost._id)} sx={{ color: 'error.main' }}>
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
           Delete Post
         </MenuItem>
       </Menu>
+
+      {/* Edit Post Dialog */}
+      <Dialog open={!!editingPostId} onClose={() => setEditingPostId(null)} fullWidth maxWidth="md">
+        <DialogTitle>Edit Post</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Title"
+            type="text"
+            fullWidth
+            value={editPostData.title}
+            onChange={(e) => setEditPostData({...editPostData, title: e.target.value})}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            label="Content"
+            multiline
+            rows={4}
+            fullWidth
+            value={editPostData.content}
+            onChange={(e) => setEditPostData({...editPostData, content: e.target.value})}
+            sx={{ mb: 2 }}
+          />
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={editPostData.category}
+              onChange={(e) => setEditPostData({...editPostData, category: e.target.value})}
+            >
+              <MenuItem value="free">Free</MenuItem>
+              <MenuItem value="qa">Q&A</MenuItem>
+              <MenuItem value="ai">AI</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditingPostId(null)}>Cancel</Button>
+          <Button onClick={handleUpdatePost} variant="contained" color="primary">Update</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
