@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import PostDetail from './pages/PostDetail';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const theme = createTheme({
@@ -33,6 +34,7 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/post/:id" element={<PostDetail />} />
             </Routes>
           </Layout>
         </Router>

@@ -152,4 +152,25 @@ router.post('/:id/vote', auth, async (req, res) => {
   }
 });
 
+// Delete post
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    
+    // Check if user is the author of the post
+    if (post.author.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Not authorized to delete this post' });
+    }
+    
+    await Post.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Post deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;
