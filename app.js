@@ -25,11 +25,9 @@ app.use((err, req, res, next) => {
 // MongoDB connection with retry logic
 const connectDB = async () => {
   try {
-    await mongoose.connect(config.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
-    console.log('Connected to MongoDB');
+    console.log('Attempting to connect to MongoDB with URI:', config.MONGODB_URI);
+    await mongoose.connect(config.MONGODB_URI);
+    console.log('Successfully connected to MongoDB');
   } catch (err) {
     console.error('MongoDB connection error:', err);
     // Retry connection after 5 seconds
@@ -37,10 +35,11 @@ const connectDB = async () => {
   }
 };
 
+// Connect to MongoDB
 connectDB();
 
 // Start server
-const PORT = config.PORT;
+const PORT = process.env.PORT || config.PORT;
 app.listen(PORT, () => {
   console.log(`Server running in ${config.NODE_ENV} mode on port ${PORT}`);
 });
