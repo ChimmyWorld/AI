@@ -136,8 +136,10 @@ export default function Home() {
 
                 <Box sx={{ flexGrow: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    <Avatar sx={{ width: 24, height: 24 }}>{post.author[0]}</Avatar>
-                    <Typography variant="body2">Posted by {post.author}</Typography>
+                    <Avatar sx={{ width: 24, height: 24 }}>
+                      {post.author?.username ? post.author.username.charAt(0) : '?'}
+                    </Avatar>
+                    <Typography variant="body2">Posted by {post.author?.username || 'Anonymous'}</Typography>
                   </Box>
                   <Typography variant="h6">{post.title}</Typography>
                   <Typography variant="body1" sx={{ mt: 1 }}>{post.content}</Typography>

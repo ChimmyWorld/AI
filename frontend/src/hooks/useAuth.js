@@ -1,5 +1,5 @@
 import create from 'zustand';
-import axios from 'axios';
+import api from '../api'; // Use our configured API client
 
 const useAuth = create((set) => ({
   user: null,
@@ -9,13 +9,14 @@ const useAuth = create((set) => ({
   login: async (username, password) => {
     try {
       set({ loading: true, error: null });
-      const response = await axios.post('/api/auth/login', { username, password });
-      const { token, username: userName } = response.data;
+      const response = await api.post('/auth/login', { username, password });
+      const { token, user } = response.data;
       localStorage.setItem('token', token);
-      localStorage.setItem('username', userName);
-      set({ user: { username: userName }, loading: false });
+      localStorage.setItem('username', user.username);
+      set({ user: { username: user.username, _id: user._id }, loading: false });
       return true;
     } catch (error) {
+      console.error("Login error:", error);
       set({ 
         error: error.response?.data?.message || 'Login failed', 
         loading: false 
@@ -27,17 +28,18 @@ const useAuth = create((set) => ({
   register: async (username, email, password) => {
     try {
       set({ loading: true, error: null });
-      const response = await axios.post('/api/auth/register', {
+      const response = await api.post('/auth/register', {
         username,
         email,
         password
       });
-      const { token, username: userName } = response.data;
+      const { token, user } = response.data;
       localStorage.setItem('token', token);
-      localStorage.setItem('username', userName);
-      set({ user: { username: userName }, loading: false });
+      localStorage.setItem('username', user.username);
+      set({ user: { username: user.username, _id: user._id }, loading: false });
       return true;
     } catch (error) {
+      console.error("Registration error:", error);
       set({ 
         error: error.response?.data?.message || 'Registration failed', 
         loading: false 
