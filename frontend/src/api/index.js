@@ -1,7 +1,8 @@
 import axios from 'axios';
 
+// In production, use a relative path so it works regardless of domain
 const baseURL = process.env.NODE_ENV === 'production'
-  ? 'https://community-forum-backend.onrender.com/api'
+  ? '/api'
   : 'http://localhost:10000/api';
 
 const api = axios.create({
