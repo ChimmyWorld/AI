@@ -49,24 +49,45 @@ export default function PostDetail() {
   // Convert URLs in text to clickable links
   const convertLinksToHTML = (text) => {
     if (!text) return '';
-    // Simplest regex that catches all URL formats
-    const urlRegex = /(https?:\/\/\S+)/g;
-    return text.split(urlRegex).map((part, i) => {
-      if (part.match(urlRegex)) {
-        return (
-          <a 
-            key={i} 
-            href={part} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            style={{ color: '#0079D3', textDecoration: 'none' }}
-          >
-            {part}
-          </a>
-        );
+    
+    // Use a simple regex that will match all URLs including Twitter links with query params
+    const urlRegex = /https?:\/\/[^\s]+/g;
+    
+    // Split the text by URLs and map each part
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+    
+    // Find all matches and build the parts array
+    while ((match = urlRegex.exec(text)) !== null) {
+      // Add text before the URL
+      if (match.index > lastIndex) {
+        parts.push(text.substring(lastIndex, match.index));
       }
-      return part;
-    });
+      
+      // Add the URL as a link component
+      const url = match[0];
+      parts.push(
+        <a 
+          key={match.index} 
+          href={url} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          style={{ color: '#0079D3', textDecoration: 'none' }}
+        >
+          {url}
+        </a>
+      );
+      
+      lastIndex = match.index + url.length;
+    }
+    
+    // Add any remaining text after the last URL
+    if (lastIndex < text.length) {
+      parts.push(text.substring(lastIndex));
+    }
+    
+    return parts;
   };
 
   const fetchPost = async () => {

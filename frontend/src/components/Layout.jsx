@@ -14,6 +14,7 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import SearchIcon from '@mui/icons-material/Search';
 import MarkChatReadIcon from '@mui/icons-material/MarkChatRead';
 import MenuIcon from '@mui/icons-material/Menu';
+import TrackChangesIcon from '@mui/icons-material/TrackChanges'; // Bullseye icon
 import { useAuth } from '../hooks/useAuth';
 import api from '../api';
 import { styled, alpha } from '@mui/material/styles';
@@ -74,12 +75,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 const BullseyeIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="12" cy="12" r="11" stroke="#FF4500" strokeWidth="2"/>
-    <circle cx="12" cy="12" r="8" stroke="#FF4500" strokeWidth="2"/>
-    <circle cx="12" cy="12" r="5" stroke="#FF4500" strokeWidth="2"/>
-    <circle cx="12" cy="12" r="2" fill="#FF4500"/>
-  </svg>
+  <TrackChangesIcon />
 );
 
 export default function Layout({ children }) {
@@ -108,18 +104,25 @@ export default function Layout({ children }) {
   // Fetch notifications
   useEffect(() => {
     if (user) {
+      const fetchNotifications = async () => {
+        try {
+          const response = await api.get('/api/notifications', {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
+          setNotifications(response.data || []);
+        } catch (error) {
+          console.error('Failed to fetch notifications:', error);
+        }
+      };
+
       fetchNotifications();
+      
+      // Set up interval to check notifications every 30 seconds
+      const intervalId = setInterval(fetchNotifications, 30000);
+      
+      return () => clearInterval(intervalId);
     }
   }, [user]);
-
-  const fetchNotifications = async () => {
-    try {
-      const response = await api.get('/api/notifications');
-      setNotifications(response.data || []);
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
-    }
-  };
 
   const handleNotificationClick = (event) => {
     setAnchorEl(event.currentTarget);
