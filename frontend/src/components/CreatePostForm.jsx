@@ -108,6 +108,27 @@ const CreatePostForm = ({ onSuccess, onCancel }) => {
           value={category}
           label="Category"
           onChange={(e) => setCategory(e.target.value)}
+          MenuProps={{
+            PaperProps: {
+              sx: {
+                maxHeight: 300,
+                "& .MuiMenuItem-root": {
+                  px: 2,
+                  py: 1.5,
+                  fontSize: "14px",
+                  fontWeight: 400
+                }
+              }
+            }
+          }}
+          sx={{
+            "& .MuiSelect-select": {
+              display: "flex",
+              alignItems: "center",
+              px: 2,
+              py: 1.5
+            }
+          }}
         >
           <MenuItem value="free">Free</MenuItem>
           <MenuItem value="qna">Q&A</MenuItem>

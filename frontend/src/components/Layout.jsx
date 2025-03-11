@@ -46,6 +46,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { styled, alpha } from '@mui/material/styles';
 import { useAuth } from '../hooks/useAuth';
 import api from '../api';
+import BullseyeLogo from './BullseyeLogo';
 
 const drawerWidth = 220;
 
@@ -56,35 +57,6 @@ const categories = [
   { name: 'Q&A', icon: <QuestionAnswerIcon />, path: '/?category=qna' },
   { name: 'AI', icon: <SmartToyIcon />, path: '/?category=ai' }
 ];
-
-// Reddit-style logo
-const RedditLogo = () => (
-  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    <Box
-      component="div"
-      sx={{
-        width: 32,
-        height: 32,
-        backgroundColor: '#FF4500',
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white',
-        mr: 1
-      }}
-    >
-      <Typography variant="h6" fontWeight="bold">B</Typography>
-    </Box>
-    <Typography
-      variant="h6"
-      noWrap
-      sx={{ color: 'black', fontWeight: 'bold', display: { xs: 'none', sm: 'block' } }}
-    >
-      bullseye
-    </Typography>
-  </Box>
-);
 
 // Reddit-like style for badges
 const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -359,7 +331,7 @@ function Layout({ children }) {
             </IconButton>
             
             <RouterLink to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-              <RedditLogo />
+              <BullseyeLogo />
             </RouterLink>
           </Box>
           
@@ -422,9 +394,57 @@ function Layout({ children }) {
                   onClose={handleMenuClose}
                   transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                   anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                  PaperProps={{
+                    sx: {
+                      width: '200px',
+                      mt: 0.5,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                    }
+                  }}
                 >
-                  <MenuItem onClick={handleProfile}>Profile</MenuItem>
-                  <MenuItem onClick={handleLogout}>Log Out</MenuItem>
+                  <Box sx={{ p: 2, display: 'flex', alignItems: 'center', borderBottom: '1px solid #EDEFF1' }}>
+                    <Avatar 
+                      sx={{ 
+                        width: 32, 
+                        height: 32,
+                        fontSize: '16px',
+                        bgcolor: '#FF4500',
+                        mr: 1.5
+                      }}
+                    >
+                      {user?.username?.charAt(0).toUpperCase() || 'U'}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontSize: '14px', fontWeight: 'bold' }}>
+                        {user?.username}
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontSize: '12px', color: '#878A8C' }}>
+                        u/{user?.username}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <MenuItem onClick={handleProfile} sx={{ py: 1.5 }}>
+                    <ListItemIcon>
+                      <AccountCircleIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText primary="Profile" />
+                  </MenuItem>
+                  <MenuItem onClick={handleLogout} sx={{ py: 1.5 }}>
+                    <ListItemIcon>
+                      <Box component="span" sx={{ 
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                          <polyline points="16 17 21 12 16 7"></polyline>
+                          <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                      </Box>
+                    </ListItemIcon>
+                    <ListItemText primary="Log Out" />
+                  </MenuItem>
                 </Menu>
                 
                 <Menu
@@ -433,10 +453,48 @@ function Layout({ children }) {
                   onClose={handleNotificationsClose}
                   transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                   anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                  PaperProps={{
+                    sx: {
+                      width: '320px',
+                      maxHeight: '400px',
+                      overflowY: 'auto',
+                      mt: 0.5,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                    }
+                  }}
                 >
-                  <MenuItem disabled={notifications.length === 0}>
-                    {notifications.length === 0 ? 'No new notifications' : 'Mark all as read'}
-                  </MenuItem>
+                  <Box sx={{ 
+                    p: 0, 
+                    borderBottom: '1px solid #EDEFF1',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Typography variant="h6" sx={{ p: 2, fontWeight: 'medium', fontSize: '16px' }}>
+                      {notifications.length === 0 ? 'No new notifications' : 'Notifications'}
+                    </Typography>
+                    {notifications.length === 0 && (
+                      <Box sx={{ 
+                        p: 2, 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mb: 2
+                      }}>
+                        <Box 
+                          component="img" 
+                          src="https://i.imgur.com/OoXoEbP.png" 
+                          alt="Bullseye mascot" 
+                          sx={{ width: 100, height: 100, mb: 2 }}
+                        />
+                        <Typography variant="body2" sx={{ color: '#878A8C', textAlign: 'center' }}>
+                          Nothing to see here yet!
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
                 </Menu>
               </>
             ) : (
