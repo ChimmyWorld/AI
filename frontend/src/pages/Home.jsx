@@ -22,7 +22,6 @@ import {
   FormControl,
   InputLabel,
   Select,
-  CloudUploadIcon,
   useMediaQuery,
   useTheme
 } from '@mui/material';
@@ -40,7 +39,8 @@ import {
   ArrowDownward as ArrowDownwardIcon,
   Chat as ChatIcon,
   Share as ShareIcon,
-  Edit as EditIcon
+  Edit as EditIcon,
+  CloudUpload as CloudUploadIcon
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import api from '../api';

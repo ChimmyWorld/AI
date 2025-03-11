@@ -26,8 +26,7 @@ import {
   Container,
   Tooltip,
   Stack,
-  CircularProgress,
-  ArrowDownwardIcon
+  CircularProgress
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useAuth } from '../hooks/useAuth';

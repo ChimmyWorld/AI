@@ -122,7 +122,23 @@ app.use((err, req, res, next) => {
 // MongoDB Connection
 console.log('Attempting to connect to MongoDB with URI:', config.MONGODB_URI);
 mongoose.connect(config.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
+  .then(() => {
+    console.log('Connected to MongoDB');
+    // Debug MongoDB collections
+    mongoose.connection.db.listCollections().toArray()
+      .then(collections => {
+        console.log('Available MongoDB collections:', collections.map(c => c.name));
+        // Check if notifications collection exists and has documents
+        if (collections.some(c => c.name === 'notifications')) {
+          mongoose.connection.db.collection('notifications').countDocuments()
+            .then(count => console.log(`Notifications collection contains ${count} documents`))
+            .catch(err => console.error('Error counting notifications:', err));
+        } else {
+          console.warn('Warning: notifications collection does not exist in the database!');
+        }
+      })
+      .catch(err => console.error('Error listing collections:', err));
+  })
   .catch(err => {
     console.error('MongoDB connection error:', err);
     process.exit(1);

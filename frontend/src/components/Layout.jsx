@@ -106,7 +106,7 @@ export default function Layout({ children }) {
     if (user) {
       const fetchNotifications = async () => {
         try {
-          const response = await api.get('/api/notifications', {
+          const response = await api.get('/notifications', {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           setNotifications(response.data || []);
@@ -134,7 +134,7 @@ export default function Layout({ children }) {
 
   const handleNotificationRead = async (notificationId) => {
     try {
-      await api.put(`/api/notifications/${notificationId}/read`);
+      await api.put(`/notifications/${notificationId}/read`);
       setNotifications(notifications.map(n => 
         n._id === notificationId ? { ...n, read: true } : n
       ));
@@ -145,7 +145,7 @@ export default function Layout({ children }) {
 
   const handleMarkAllRead = async () => {
     try {
-      await api.put('/api/notifications/read-all');
+      await api.put('/notifications/read-all');
       setNotifications(notifications.map(n => ({ ...n, read: true })));
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
