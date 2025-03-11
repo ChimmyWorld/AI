@@ -534,15 +534,15 @@ export default function Profile() {
                             onClick={() => navigate(`/post/${post._id}`)}
                             sx={{ mr: 1, color: 'text.secondary' }}
                           >
-                            {post.comments ? post.comments.length : 0} Comments
+                            {Array.isArray(post.comments) ? post.comments.length : 0} Comments
                           </Button>
                           
-                          <Typography variant="body2" color="textSecondary" sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+                          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
                             <ArrowUpwardIcon fontSize="small" sx={{ mr: 0.5 }} />
                             {post.upvotes ? post.upvotes.length : 0}
                           </Typography>
                           
-                          <Typography variant="body2" color="textSecondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
                             <ArrowDownwardIcon fontSize="small" sx={{ mr: 0.5 }} />
                             {post.downvotes ? post.downvotes.length : 0}
                           </Typography>

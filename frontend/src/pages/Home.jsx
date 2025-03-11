@@ -495,14 +495,14 @@ export default function Home() {
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Button 
                     startIcon={<ChatIcon />} 
-                    onClick={() => toggleComments(post._id)}
+                    onClick={() => toggleComments(post._id)} 
                     sx={{ 
                       textTransform: 'none', 
                       color: 'text.secondary',
                       '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' }
                     }}
                   >
-                    {post.comments ? post.comments.length : 0} Comments
+                    {Array.isArray(post.comments) ? post.comments.length : 0} Comments
                   </Button>
                   
                   <Button 
