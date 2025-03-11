@@ -5,6 +5,7 @@ const cloudinary = require('cloudinary').v2;
 const Post = require('../models/Post');
 const auth = require('../middleware/auth');
 const Notification = require('../models/notification');
+const mongoose = require('mongoose'); // Added mongoose import
 
 // Configure Cloudinary
 cloudinary.config({
@@ -80,6 +81,17 @@ router.get('/', async (req, res) => {
       .populate('author', 'username karma')
       .sort('-createdAt')
       .exec();
+    
+    // Get comment counts for each post from the Comment collection
+    const Comment = mongoose.model('Comment');
+    for (const post of posts) {
+      if (post.commentCount === undefined || post.commentCount === null) {
+        const count = await Comment.countDocuments({ post: post._id });
+        post.commentCount = count;
+        await post.save(); // Update the post with the correct count
+      }
+    }
+    
     res.json(posts);
   } catch (error) {
     res.status(500).json({ message: error.message });

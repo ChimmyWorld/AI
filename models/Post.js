@@ -22,12 +22,22 @@ const postSchema = new mongoose.Schema({
   comments: [commentSchema],
   upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   downvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  commentCount: { type: Number, default: 0 } 
 });
 
 // Virtual for vote count
 postSchema.virtual('voteCount').get(function() {
   return this.upvotes.length - this.downvotes.length;
+});
+
+// Set toJSON option to include virtuals
+postSchema.set('toJSON', { 
+  virtuals: true,
+  transform: function(doc, ret) {
+    ret.votes = ret.voteCount;
+    return ret;
+  } 
 });
 
 module.exports = mongoose.model('Post', postSchema);

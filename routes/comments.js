@@ -73,6 +73,9 @@ router.post('/', auth, async (req, res) => {
     
     await comment.save();
     
+    // Update the post's comment count
+    await Post.findByIdAndUpdate(postId, { $inc: { commentCount: 1 } });
+    
     // Populate author information before sending response
     const populatedComment = await Comment.findById(comment._id)
       .populate('author', 'username avatar karma');
@@ -142,7 +145,15 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(403).json({ error: 'User not authorized to delete this comment' });
     }
     
+    // Store the post ID before deleting the comment
+    const postId = comment.post;
+    
     await comment.deleteOne();
+    
+    // Decrement the post's comment count
+    if (postId) {
+      await Post.findByIdAndUpdate(postId, { $inc: { commentCount: -1 } });
+    }
     
     res.json({ message: 'Comment deleted successfully' });
   } catch (error) {
