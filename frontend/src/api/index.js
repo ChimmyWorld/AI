@@ -42,20 +42,28 @@ api.interceptors.request.use(
 // Add a response interceptor for global error handling
 api.interceptors.response.use(
   (response) => {
-    // Normalize post data to ensure comments are always arrays
+    // Only normalize posts data, not auth or other responses
     if (response.data && typeof response.data === 'object') {
-      // Handle single post object
-      if (response.data.comments === undefined || response.data.comments === null) {
-        response.data.comments = [];
-      }
+      // Only apply to responses that likely contain posts (skip auth/user endpoints)
+      const url = response.config.url;
+      const isProbablyPostData = url && 
+        (url.includes('/posts') || url.includes('/post/') || 
+         url.includes('/user/posts') || url.includes('/user/comments'));
       
-      // Handle array of posts
-      if (Array.isArray(response.data)) {
-        response.data.forEach(item => {
-          if (item && typeof item === 'object' && (item.comments === undefined || item.comments === null)) {
-            item.comments = [];
-          }
-        });
+      if (isProbablyPostData) {
+        // Handle single post object
+        if (response.data.comments === undefined || response.data.comments === null) {
+          response.data.comments = [];
+        }
+        
+        // Handle array of posts
+        if (Array.isArray(response.data)) {
+          response.data.forEach(item => {
+            if (item && typeof item === 'object' && (item.comments === undefined || item.comments === null)) {
+              item.comments = [];
+            }
+          });
+        }
       }
     }
     return response;
