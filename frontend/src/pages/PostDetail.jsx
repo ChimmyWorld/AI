@@ -49,7 +49,8 @@ export default function PostDetail() {
   // Convert URLs in text to clickable links
   const convertLinksToHTML = (text) => {
     if (!text) return '';
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    // Simplest regex that catches all URL formats
+    const urlRegex = /(https?:\/\/\S+)/g;
     return text.split(urlRegex).map((part, i) => {
       if (part.match(urlRegex)) {
         return (
@@ -390,9 +391,17 @@ export default function PostDetail() {
                 <Avatar sx={{ width: 24, height: 24, bgcolor: 'grey.500' }}>
                   {comment.author?.username ? comment.author.username[0].toUpperCase() : '?'}
                 </Avatar>
-                <Typography variant="body2" fontWeight="bold">
-                  {comment.author?._id === user?._id ? user.username : (comment.author?.username || 'Anonymous')}
-                </Typography>
+                {comment.author ? (
+                  <Typography variant="body2" fontWeight="bold">
+                    {user && user._id && comment.author && comment.author._id && 
+                     user._id === comment.author._id ? 
+                      user.username : comment.author.username || 'Anonymous'}
+                  </Typography>
+                ) : (
+                  <Typography variant="body2" fontWeight="bold">
+                    Anonymous
+                  </Typography>
+                )}
                 <Typography variant="caption" color="text.secondary">
                   • {new Date(comment.createdAt).toLocaleString()}
                 </Typography>
