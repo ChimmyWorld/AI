@@ -22,7 +22,9 @@ import {
   FormControl,
   InputLabel,
   Select,
-  CloudUploadIcon
+  CloudUploadIcon,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import {
   ArrowUpward as UpvoteIcon,
@@ -47,6 +49,8 @@ export default function Home() {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [posts, setPosts] = useState([]);
   const [openNewPost, setOpenNewPost] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', content: '', media: null, category: 'free' });
@@ -244,18 +248,53 @@ export default function Home() {
     }
   };
 
+  // Convert URLs in text to clickable links
+  const convertLinksToHTML = (text) => {
+    if (!text) return '';
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.split(urlRegex).map((part, i) => {
+      if (part.match(urlRegex)) {
+        return (
+          <a 
+            key={i} 
+            href={part} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{ color: '#0079D3', textDecoration: 'none' }}
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
   if (loading) return <Typography>Loading...</Typography>;
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
-    <Box>
+    <Box sx={{ width: '100%' }}>
       {/* Category and post creation controls */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'flex-start' : 'center', 
+        justifyContent: 'space-between', 
+        mb: 3,
+        gap: isMobile ? 2 : 0
+      }}>
         <Typography variant="h5" component="h1" sx={{ fontWeight: 'bold', color: '#1A1A1B' }}>
           {category === 'all' ? 'Home' : category.charAt(0).toUpperCase() + category.slice(1)}
         </Typography>
         
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          flexDirection: isMobile ? 'column' : 'row',
+          width: isMobile ? '100%' : 'auto',
+          gap: isMobile ? 1 : 0
+        }}>
           {user && (
             <Button
               variant="contained"
@@ -265,13 +304,21 @@ export default function Home() {
                 backgroundColor: '#FF4500',
                 '&:hover': { backgroundColor: '#E03D00' },
                 borderRadius: 5,
-                px: 3
+                px: 3,
+                width: isMobile ? '100%' : 'auto'
               }}
             >
               New Post
             </Button>
           )}
-          <Box sx={{ display: 'flex', ml: 2, backgroundColor: '#f6f7f8', borderRadius: 2 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            ml: isMobile ? 0 : 2, 
+            mt: isMobile ? 1 : 0,
+            backgroundColor: '#f6f7f8', 
+            borderRadius: 2,
+            width: isMobile ? '100%' : 'auto'
+          }}>
             <Button
               variant={sortBy === 'new' ? 'contained' : 'text'}
               onClick={() => setSortBy('new')}
@@ -279,7 +326,9 @@ export default function Home() {
                 borderRadius: '16px 0 0 16px',
                 backgroundColor: sortBy === 'new' ? '#FF4500' : 'transparent',
                 color: sortBy === 'new' ? 'white' : 'inherit',
-                '&:hover': { backgroundColor: sortBy === 'new' ? '#E03D00' : 'rgba(255,69,0,0.1)' }
+                '&:hover': { backgroundColor: sortBy === 'new' ? '#E03D00' : 'rgba(255,69,0,0.1)' },
+                flex: isMobile ? 1 : 'auto',
+                fontSize: isMobile ? '0.75rem' : 'inherit'
               }}
               startIcon={<NewReleasesIcon />}
             >
@@ -292,7 +341,9 @@ export default function Home() {
                 borderRadius: 0,
                 backgroundColor: sortBy === 'hot' ? '#FF4500' : 'transparent',
                 color: sortBy === 'hot' ? 'white' : 'inherit',
-                '&:hover': { backgroundColor: sortBy === 'hot' ? '#E03D00' : 'rgba(255,69,0,0.1)' }
+                '&:hover': { backgroundColor: sortBy === 'hot' ? '#E03D00' : 'rgba(255,69,0,0.1)' },
+                flex: isMobile ? 1 : 'auto',
+                fontSize: isMobile ? '0.75rem' : 'inherit'
               }}
               startIcon={<WhatshotIcon />}
             >
@@ -305,7 +356,9 @@ export default function Home() {
                 borderRadius: '0 16px 16px 0',
                 backgroundColor: sortBy === 'top' ? '#FF4500' : 'transparent',
                 color: sortBy === 'top' ? 'white' : 'inherit',
-                '&:hover': { backgroundColor: sortBy === 'top' ? '#E03D00' : 'rgba(255,69,0,0.1)' }
+                '&:hover': { backgroundColor: sortBy === 'top' ? '#E03D00' : 'rgba(255,69,0,0.1)' },
+                flex: isMobile ? 1 : 'auto',
+                fontSize: isMobile ? '0.75rem' : 'inherit'
               }}
               startIcon={<TrendingUpIcon />}
             >
@@ -411,7 +464,8 @@ export default function Home() {
                   sx={{ 
                     fontWeight: 'medium', 
                     cursor: 'pointer',
-                    '&:hover': { textDecoration: 'underline' }
+                    '&:hover': { textDecoration: 'underline' },
+                    fontSize: isMobile ? '1rem' : '1.25rem'
                   }}
                   onClick={() => navigateToPostDetail(post._id)}
                 >
@@ -421,8 +475,8 @@ export default function Home() {
                 {/* Post content */}
                 <Typography variant="body2" sx={{ mt: 1, mb: 2 }}>
                   {post.content.length > 300 
-                    ? post.content.substring(0, 300) + '...' 
-                    : post.content
+                    ? convertLinksToHTML(post.content.substring(0, 300) + '...') 
+                    : convertLinksToHTML(post.content)
                   }
                 </Typography>
                 
@@ -579,20 +633,21 @@ export default function Home() {
               p: 2, 
               borderRadius: 2,
               backgroundColor: '#F8F9FA',
-              ml: 3,
+              ml: isMobile ? 0 : 3,
               mr: 0,
               border: '1px solid #ccc',
             }}
           >
             {/* Comment form */}
             {user && (
-              <Box sx={{ display: 'flex', mb: 3, gap: 1, alignItems: 'flex-start' }}>
+              <Box sx={{ display: 'flex', mb: 3, gap: 1, alignItems: 'flex-start', flexDirection: isMobile ? 'column' : 'row' }}>
                 <Avatar 
                   sx={{ 
                     width: 32, 
                     height: 32, 
                     bgcolor: '#FF4500',
-                    fontSize: '0.875rem'
+                    fontSize: '0.875rem',
+                    display: isMobile ? 'none' : 'flex'
                   }}
                 >
                   {user.username ? user.username[0].toUpperCase() : '?'}
@@ -625,7 +680,9 @@ export default function Home() {
                       backgroundColor: commentText.trim() ? '#E03D00' : 'grey.400' 
                     },
                     textTransform: 'none',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    alignSelf: isMobile ? 'flex-end' : 'center',
+                    mt: isMobile ? 1 : 0
                   }}
                 >
                   Comment
@@ -650,7 +707,13 @@ export default function Home() {
                       }
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1, 
+                      mb: 0.5,
+                      flexWrap: isMobile ? 'wrap' : 'nowrap'
+                    }}>
                       <Avatar 
                         sx={{ 
                           width: 24, 
@@ -662,7 +725,7 @@ export default function Home() {
                         {comment.author?.username ? comment.author.username[0].toUpperCase() : '?'}
                       </Avatar>
                       <Typography variant="body2" fontWeight="bold">
-                        {comment.author?.username || 'Anonymous'}
+                        {comment.author?._id === user?._id ? user.username : (comment.author?.username || 'Anonymous')}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
                         • {new Date(comment.createdAt).toLocaleString()}
@@ -724,7 +787,7 @@ export default function Home() {
                       </Box>
                     ) : (
                       <Typography variant="body2" sx={{ ml: 4 }}>
-                        {comment.content}
+                        {convertLinksToHTML(comment.content)}
                       </Typography>
                     )}
                   </Box>

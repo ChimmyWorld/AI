@@ -312,4 +312,49 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
+// Get posts by user ID
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const posts = await Post.find({ author: req.params.userId })
+      .populate('author', 'username karma')
+      .sort('-createdAt')
+      .exec();
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get comments by user ID
+router.get('/comments/user/:userId', async (req, res) => {
+  try {
+    // Find all posts with comments by this user
+    const posts = await Post.find({ 'comments.author': req.params.userId })
+      .populate('author', 'username karma')
+      .exec();
+    
+    // Extract only the comments by the user from each post
+    const userComments = [];
+    posts.forEach(post => {
+      const filteredComments = post.comments.filter(
+        comment => comment.author.toString() === req.params.userId
+      );
+      filteredComments.forEach(comment => {
+        userComments.push({
+          postId: post._id,
+          postTitle: post.title,
+          comment: comment
+        });
+      });
+    });
+    
+    // Sort by comment creation date, newest first
+    userComments.sort((a, b) => new Date(b.comment.createdAt) - new Date(a.comment.createdAt));
+    
+    res.json(userComments);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;
