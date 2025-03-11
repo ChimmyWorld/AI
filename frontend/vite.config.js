@@ -10,7 +10,16 @@ export default defineConfig({
     emptyOutDir: true,
     sourcemap: true,
     minify: 'terser',
-    target: 'es2018'
+    target: 'es2018',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
+          utils: ['axios', 'zustand']
+        }
+      }
+    }
   },
   server: {
     proxy: {

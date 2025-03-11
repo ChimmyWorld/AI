@@ -8,6 +8,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
+const commentRoutes = require('./routes/comments');
 const notificationRoutes = require('./routes/notifications');
 const userRoutes = require('./routes/users');
 
@@ -43,6 +44,7 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/posts', postRoutes);
+app.use('/api/comments', commentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
@@ -54,9 +56,9 @@ app.get('/api/diagnostic', async (req, res) => {
       serverTime: new Date().toISOString(),
       version: '1.1.0 - Reddit UI Update',
       environment: process.env.NODE_ENV || 'development',
-      staticPath: path.resolve(__dirname, 'frontend/dist'),
-      staticExists: fs.existsSync(path.resolve(__dirname, 'frontend/dist')),
-      indexExists: fs.existsSync(path.resolve(__dirname, 'frontend/dist/index.html')),
+      staticPath: path.resolve(__dirname, 'public'),
+      staticExists: fs.existsSync(path.resolve(__dirname, 'public')),
+      indexExists: fs.existsSync(path.resolve(__dirname, 'public/index.html')),
       serverStartTime: new Date(Date.now() - process.uptime() * 1000).toISOString(),
       uptime: process.uptime(),
       nodeVersion: process.version,
@@ -76,13 +78,13 @@ app.get('/api/diagnostic', async (req, res) => {
 });
 
 // Serve static assets in correct order
-// 1. First check in frontend/dist (Vite build output)
-app.use(express.static(path.join(__dirname, 'frontend/dist'), {
+// 1. First check in public directory (Vite actually builds here - see vite.config.js)
+app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: '1h',
 }));
 
-// 2. Then check in public directory as fallback
-app.use(express.static(path.join(__dirname, 'public'), {
+// 2. Then check in frontend/dist as fallback
+app.use(express.static(path.join(__dirname, 'frontend/dist'), {
   maxAge: '1h',
 }));
 
@@ -113,22 +115,21 @@ app.get('*', (req, res) => {
   }
   
   // For non-API routes, serve the React app
-  const frontendPath = path.resolve(__dirname, 'frontend/dist/index.html');
+  const publicPath = path.resolve(__dirname, 'public/index.html');
   
-  // Log that we're serving the frontend for debugging
-  console.log(`Serving frontend from: ${frontendPath}`);
-  
-  // First check if the file exists
-  if (fs.existsSync(frontendPath)) {
-    return res.sendFile(frontendPath);
+  // First check if the file exists in the public directory (this is where Vite builds to)
+  if (fs.existsSync(publicPath)) {
+    console.log(`Serving frontend from public: ${publicPath}`);
+    return res.sendFile(publicPath);
   } else {
-    // Try the public folder as fallback
-    const publicPath = path.resolve(__dirname, 'public/index.html');
-    if (fs.existsSync(publicPath)) {
-      return res.sendFile(publicPath);
+    // Try the frontend/dist folder as fallback
+    const frontendPath = path.resolve(__dirname, 'frontend/dist/index.html');
+    if (fs.existsSync(frontendPath)) {
+      console.log(`Serving frontend from dist: ${frontendPath}`);
+      return res.sendFile(frontendPath);
     } else {
       // If no index.html found in either location, serve error HTML
-      console.error('ERROR: No index.html found in frontend/dist or public!');
+      console.error('ERROR: No index.html found in public or frontend/dist!');
       return res.status(500).send(errorHtml);
     }
   }
