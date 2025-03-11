@@ -22,36 +22,30 @@ const requestLogger = (req, res, next) => {
 
 app.use(requestLogger);
 
-// CORS configuration
-const corsOptions = {
-  // In development, allow all origins (including the browser preview)
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourproductiondomain.com'] // Lock down in production
-    : true, // Allow all origins in development
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+// Modify static file serving and SPA handling
+// Clear CORS headers for production
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' ? '*' : 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
-};
+}));
 
-// Middleware
-app.use(cors(corsOptions));
-app.use(express.json());
-
-// Health check endpoint for diagnostics
+// Add health check for render.com
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
-    message: 'Server is running',
-    timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV || 'development'
-  });
+  const health = {
+    status: 'UP',
+    uptime: process.uptime(),
+    timestamp: Date.now(),
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  };
+  res.json(health);
 });
 
-// API Routes
-app.use('/api/auth', authRoutes);
+// API routes
 app.use('/api/posts', postRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
 
 // Add diagnostic endpoint
 app.get('/api/diagnostic', async (req, res) => {
@@ -81,16 +75,35 @@ app.get('/api/diagnostic', async (req, res) => {
   }
 });
 
-// Serve static assets - use public directory as primary since that's where Vite builds to
+// Serve static assets in correct order
+// 1. First check in frontend/dist (Vite build output)
+app.use(express.static(path.join(__dirname, 'frontend/dist'), {
+  maxAge: '1h',
+}));
+
+// 2. Then check in public directory as fallback
 app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: '1h',
 }));
 
-// Modify this to EXPLICITLY direct the route to use frontend/dist
-// This is the most likely cause of our deployment issue
-app.use(express.static(path.join(__dirname, 'frontend/dist'), {
-  maxAge: '1h',
-}));
+// Create simple HTML for error cases
+const errorHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Server Error</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+    h1 { color: #d32f2f; }
+  </style>
+</head>
+<body>
+  <h1>Server Error</h1>
+  <p>Sorry, something went wrong on our server. Please try again later.</p>
+  <p>If the problem persists, please contact support.</p>
+</body>
+</html>
+`;
 
 // Important: Add a wildcard route to handle SPA routing - this ensures React Router works
 app.get('*', (req, res) => {
@@ -109,66 +122,16 @@ app.get('*', (req, res) => {
   if (fs.existsSync(frontendPath)) {
     return res.sendFile(frontendPath);
   } else {
-    // If not, try the public folder as fallback
-    return res.sendFile(path.resolve(__dirname, 'public/index.html'));
-  }
-});
-
-// Create simple HTML for error cases
-const errorHtml = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Community Forum</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
-    .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    h1 { color: #d32f2f; }
-    .message { line-height: 1.6; }
-    .action { margin-top: 20px; }
-    button { background: #1976d2; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
-    pre { background: #f5f5f5; padding: 15px; border-radius: 4px; overflow: auto; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Application Error</h1>
-    <div class="message">
-      <p>We're having trouble loading the application. This might be due to:</p>
-      <ul>
-        <li>A problem with the build or deployment process</li>
-        <li>Missing static files</li>
-        <li>Server configuration issues</li>
-      </ul>
-    </div>
-    <pre>Server time: ${new Date().toISOString()}</pre>
-    <div class="action">
-      <button onclick="window.location.reload()">Try Again</button>
-    </div>
-  </div>
-</body>
-</html>
-`;
-
-// Direct route for health check and troubleshooting
-app.get('/healthcheck', (req, res) => {
-  const publicExists = fs.existsSync(path.join(__dirname, 'public'));
-  const publicIndexExists = fs.existsSync(path.join(__dirname, 'public/index.html'));
-  const assetsExist = fs.existsSync(path.join(__dirname, 'public/assets'));
-
-  res.json({
-    status: 'ok',
-    environment: process.env.NODE_ENV || 'development',
-    directories: {
-      publicExists,
-      publicIndexExists,
-      assetsExist,
-      cwd: __dirname,
-      files: publicExists ? fs.readdirSync(path.join(__dirname, 'public')) : []
+    // Try the public folder as fallback
+    const publicPath = path.resolve(__dirname, 'public/index.html');
+    if (fs.existsSync(publicPath)) {
+      return res.sendFile(publicPath);
+    } else {
+      // If no index.html found in either location, serve error HTML
+      console.error('ERROR: No index.html found in frontend/dist or public!');
+      return res.status(500).send(errorHtml);
     }
-  });
+  }
 });
 
 // Basic error handler
@@ -177,30 +140,48 @@ app.use((err, req, res, next) => {
   res.status(500).send(errorHtml);
 });
 
-// MongoDB Connection
-console.log('Attempting to connect to MongoDB with URI:', config.MONGODB_URI);
-mongoose.connect(config.MONGODB_URI)
-  .then(() => {
-    console.log('Connected to MongoDB');
-    // Debug MongoDB collections
-    mongoose.connection.db.listCollections().toArray()
-      .then(collections => {
-        console.log('Available MongoDB collections:', collections.map(c => c.name));
-        // Check if notifications collection exists and has documents
-        if (collections.some(c => c.name === 'notifications')) {
-          mongoose.connection.db.collection('notifications').countDocuments()
-            .then(count => console.log(`Notifications collection contains ${count} documents`))
-            .catch(err => console.error('Error counting notifications:', err));
-        } else {
-          console.warn('Warning: notifications collection does not exist in the database!');
-        }
-      })
-      .catch(err => console.error('Error listing collections:', err));
-  })
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);
+// MongoDB connection - Add more detailed error handling and retry logic
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 10000, // 10 seconds timeout for server selection
+  socketTimeoutMS: 45000, // 45 seconds timeout on socket
+  family: 4, // Use IPv4, skip trying IPv6
+})
+.then(() => {
+  console.log('Connected to MongoDB');
+})
+.catch((err) => {
+  console.error('Failed to connect to MongoDB:', err.message);
+  // Don't crash the app, but log the error
+});
+
+// Handle MongoDB connection errors
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB connection error:', err);
+});
+
+// Attempt reconnection if connection is lost
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected. Trying to reconnect...');
+  setTimeout(() => {
+    mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      family: 4,
+    }).catch(err => console.error('Failed to reconnect to MongoDB:', err.message));
+  }, 5000); // Try to reconnect after 5 seconds
+});
+
+// Make sure we handle process termination properly
+process.on('SIGINT', () => {
+  mongoose.connection.close(() => {
+    console.log('MongoDB connection closed due to app termination');
+    process.exit(0);
   });
+});
 
 // Start server
 const PORT = process.env.PORT || 10002;
