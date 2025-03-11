@@ -366,7 +366,7 @@ export default function PostDetail() {
         
         <Divider sx={{ my: 2 }} />
         
-        {post.comments && post.comments.length > 0 ? (
+        {Array.isArray(post.comments) && post.comments.length > 0 ? (
           post.comments.map((comment) => (
             <Box key={comment._id} sx={{ mb: 3, '&:last-child': { mb: 0 } }}>
               <Box sx={{ 

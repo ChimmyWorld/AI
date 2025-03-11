@@ -587,7 +587,7 @@ export default function Profile() {
                 <Box display="flex" justifyContent="center" py={4}>
                   <CircularProgress color="primary" />
                 </Box>
-              ) : userComments.length > 0 ? (
+              ) : Array.isArray(userComments) && userComments.length > 0 ? (
                 <Stack spacing={2}>
                   {userComments.map((commentItem) => (
                     <Paper 

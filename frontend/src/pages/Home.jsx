@@ -681,7 +681,7 @@ export default function Home() {
 
             {/* Comments list */}
             <Box>
-              {post.comments && post.comments.length > 0 ? (
+              {Array.isArray(post.comments) && post.comments.length > 0 ? (
                 post.comments.map((comment) => (
                   <Box 
                     key={comment._id} 
