@@ -75,7 +75,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 const BullseyeIcon = () => (
-  <TrackChangesIcon />
+  <TrackChangesIcon sx={{ color: '#FF4500', fontSize: 28 }} />
 );
 
 export default function Layout({ children }) {

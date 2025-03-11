@@ -252,44 +252,11 @@ export default function Home() {
   const convertLinksToHTML = (text) => {
     if (!text) return '';
     
-    // Use a simple regex that will match all URLs including Twitter links with query params
-    const urlRegex = /https?:\/\/[^\s]+/g;
+    // Find and replace URLs with HTML anchor tags
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const html = text.replace(urlRegex, '<a href="$&" target="_blank" rel="noopener noreferrer" style="color: #0079D3; text-decoration: none;">$&</a>');
     
-    // Split the text by URLs and map each part
-    const parts = [];
-    let lastIndex = 0;
-    let match;
-    
-    // Find all matches and build the parts array
-    while ((match = urlRegex.exec(text)) !== null) {
-      // Add text before the URL
-      if (match.index > lastIndex) {
-        parts.push(text.substring(lastIndex, match.index));
-      }
-      
-      // Add the URL as a link component
-      const url = match[0];
-      parts.push(
-        <a 
-          key={match.index} 
-          href={url} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          style={{ color: '#0079D3', textDecoration: 'none' }}
-        >
-          {url}
-        </a>
-      );
-      
-      lastIndex = match.index + url.length;
-    }
-    
-    // Add any remaining text after the last URL
-    if (lastIndex < text.length) {
-      parts.push(text.substring(lastIndex));
-    }
-    
-    return parts;
+    return <span dangerouslySetInnerHTML={{ __html: html }} />;
   };
 
   if (loading) return <Typography>Loading...</Typography>;
@@ -746,17 +713,10 @@ export default function Home() {
                       >
                         {comment.author?.username ? comment.author.username[0].toUpperCase() : '?'}
                       </Avatar>
-                      {comment.author ? (
-                        <Typography variant="body2" fontWeight="bold">
-                          {user && user._id && comment.author && comment.author._id && 
-                           user._id === comment.author._id ? 
-                            user.username : comment.author.username || 'Anonymous'}
-                        </Typography>
-                      ) : (
-                        <Typography variant="body2" fontWeight="bold">
-                          Anonymous
-                        </Typography>
-                      )}
+                      <Typography variant="body2" fontWeight="bold">
+                        {(user && comment.author && user._id === comment.author._id) ? 
+                          user.username : (comment.author?.username || 'Anonymous')}
+                      </Typography>
                       <Typography variant="caption" color="text.secondary">
                         • {new Date(comment.createdAt).toLocaleString()}
                       </Typography>
