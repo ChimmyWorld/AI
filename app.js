@@ -22,9 +22,30 @@ const requestLogger = (req, res, next) => {
 
 app.use(requestLogger);
 
+// CORS configuration
+const corsOptions = {
+  // In development, allow all origins (including the browser preview)
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://yourproductiondomain.com'] // Lock down in production
+    : true, // Allow all origins in development
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
+
+// Health check endpoint for diagnostics
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'ok', 
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'development'
+  });
+});
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -82,7 +103,7 @@ const errorHtml = `
 `;
 
 // Direct route for health check and troubleshooting
-app.get('/health', (req, res) => {
+app.get('/healthcheck', (req, res) => {
   const publicExists = fs.existsSync(path.join(__dirname, 'public'));
   const publicIndexExists = fs.existsSync(path.join(__dirname, 'public/index.html'));
   const assetsExist = fs.existsSync(path.join(__dirname, 'public/assets'));
@@ -145,14 +166,17 @@ mongoose.connect(config.MONGODB_URI)
   });
 
 // Start server
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 10002;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 app.listen(PORT, () => {
   console.log(`Server running in ${NODE_ENV} mode on port ${PORT}`);
-  console.log(`Server URL: ${process.env.RENDER_EXTERNAL_URL || 'http://localhost:' + PORT}`);
-  console.log(`Public directory exists: ${fs.existsSync(path.join(__dirname, 'public'))}`);
-  if (fs.existsSync(path.join(__dirname, 'public'))) {
-    console.log('Public directory contents:', fs.readdirSync(path.join(__dirname, 'public')));
+  console.log(`Server URL: http://localhost:${PORT}`);
+  
+  // Log public directory existence and contents
+  const publicExists = fs.existsSync(path.join(__dirname, 'public'));
+  console.log(`Public directory exists: ${publicExists}`);
+  if (publicExists) {
+    console.log(`Public directory contents: ${fs.readdirSync(path.join(__dirname, 'public'))}`);
   }
 });

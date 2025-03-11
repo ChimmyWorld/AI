@@ -1,33 +1,92 @@
 import { useState, useEffect } from 'react';
-import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, AppBar, Toolbar, Typography, Button, Avatar, Badge, Menu, MenuItem, IconButton, Container, Grid, Paper, Divider, InputBase, Tooltip, useMediaQuery, useTheme, SwipeableDrawer } from '@mui/material';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { 
+  Box, 
+  Drawer, 
+  List, 
+  ListItem, 
+  ListItemIcon, 
+  ListItemText, 
+  AppBar, 
+  Toolbar, 
+  Typography, 
+  Button, 
+  Avatar, 
+  Badge, 
+  Menu, 
+  MenuItem, 
+  IconButton, 
+  Container, 
+  Grid, 
+  Paper, 
+  Divider, 
+  InputBase, 
+  Tooltip, 
+  useMediaQuery, 
+  useTheme, 
+  SwipeableDrawer, 
+  Collapse, 
+  ListItemButton 
+} from '@mui/material';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import FiberNewIcon from '@mui/icons-material/FiberNew';
-import WhatshotIcon from '@mui/icons-material/Whatshot';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import NewReleasesIcon from '@mui/icons-material/NewReleases';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import SearchIcon from '@mui/icons-material/Search';
-import MarkChatReadIcon from '@mui/icons-material/MarkChatRead';
 import MenuIcon from '@mui/icons-material/Menu';
-import TrackChangesIcon from '@mui/icons-material/TrackChanges'; // Bullseye icon
+import SearchIcon from '@mui/icons-material/Search';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import AddBoxIcon from '@mui/icons-material/AddBox';
+import PostIcon from '@mui/icons-material/Description';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import ChatIcon from '@mui/icons-material/Chat';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import { styled, alpha } from '@mui/material/styles';
 import { useAuth } from '../hooks/useAuth';
 import api from '../api';
-import { styled, alpha } from '@mui/material/styles';
 
-const drawerWidth = 240;
+const drawerWidth = 220;
 
+// Categories/Topics
 const categories = [
   { name: 'Home', icon: <HomeIcon />, path: '/' },
   { name: 'Free', icon: <FiberNewIcon />, path: '/?category=free' },
-  { name: 'Q&A', icon: <QuestionAnswerIcon />, path: '/?category=qa' },
+  { name: 'Q&A', icon: <QuestionAnswerIcon />, path: '/?category=qna' },
   { name: 'AI', icon: <SmartToyIcon />, path: '/?category=ai' }
 ];
 
+// Reddit-style logo
+const RedditLogo = () => (
+  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    <Box
+      component="div"
+      sx={{
+        width: 32,
+        height: 32,
+        backgroundColor: '#FF4500',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        mr: 1
+      }}
+    >
+      <Typography variant="h6" fontWeight="bold">B</Typography>
+    </Box>
+    <Typography
+      variant="h6"
+      noWrap
+      sx={{ color: 'black', fontWeight: 'bold', display: { xs: 'none', sm: 'block' } }}
+    >
+      bullseye
+    </Typography>
+  </Box>
+);
+
+// Reddit-like style for badges
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
     backgroundColor: '#FF4500',
@@ -36,16 +95,18 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
   },
 }));
 
+// Reddit-style search box
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
   borderRadius: 20,
-  backgroundColor: alpha(theme.palette.common.black, 0.04),
+  backgroundColor: alpha(theme.palette.common.white, 0.9),
   '&:hover': {
-    backgroundColor: alpha(theme.palette.common.black, 0.08),
+    backgroundColor: alpha(theme.palette.common.white, 1),
   },
-  marginRight: theme.spacing(2),
-  marginLeft: theme.spacing(2),
+  marginRight: theme.spacing(1),
+  marginLeft: theme.spacing(1),
   width: '100%',
+  border: '1px solid #edeff1',
   [theme.breakpoints.up('sm')]: {
     width: 'auto',
     minWidth: '300px',
@@ -53,14 +114,14 @@ const Search = styled('div')(({ theme }) => ({
 }));
 
 const SearchIconWrapper = styled('div')(({ theme }) => ({
-  padding: theme.spacing(0, 2),
+  padding: theme.spacing(0, 1),
   height: '100%',
   position: 'absolute',
   pointerEvents: 'none',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  color: alpha(theme.palette.common.black, 0.54),
+  color: '#878A8C',
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
@@ -68,557 +129,419 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   width: '100%',
   '& .MuiInputBase-input': {
     padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    paddingLeft: `calc(1em + ${theme.spacing(3)})`,
     transition: theme.transitions.create('width'),
     width: '100%',
   },
 }));
 
-const BullseyeIcon = () => (
-  <TrackChangesIcon sx={{ color: '#FF4500', fontSize: 28 }} />
-);
-
-export default function Layout({ children }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { user, logout } = useAuth();
+function Layout({ children }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [notifications, setNotifications] = useState([]);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [popularCommunities, setPopularCommunities] = useState([
-    { name: 'r/technology', members: '12.5M' },
-    { name: 'r/science', members: '28.7M' },
-    { name: 'r/gaming', members: '34.2M' },
-    { name: 'r/movies', members: '26.9M' },
-    { name: 'r/programming', members: '5.6M' }
-  ]);
-
-  // Determine active category from URL
-  const activeCategory = location.search.includes('category=') 
-    ? categories.find(c => location.search.includes(`category=${c.name.toLowerCase()}`))?.name 
-    : 'Home';
-
-  // Fetch notifications
-  useEffect(() => {
-    if (user) {
-      const fetchNotifications = async () => {
-        try {
-          const response = await api.get('/notifications', {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-          });
-          setNotifications(response.data || []);
-        } catch (error) {
-          console.error('Failed to fetch notifications:', error);
-        }
-      };
-
-      fetchNotifications();
-      
-      // Set up interval to check notifications every 30 seconds
-      const intervalId = setInterval(fetchNotifications, 30000);
-      
-      return () => clearInterval(intervalId);
-    }
-  }, [user]);
-
-  const handleNotificationClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleNotificationClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleNotificationRead = async (notificationId) => {
-    try {
-      await api.put(`/notifications/${notificationId}/read`);
-      setNotifications(notifications.map(n => 
-        n._id === notificationId ? { ...n, read: true } : n
-      ));
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
-    }
-  };
-
-  const handleMarkAllRead = async () => {
-    try {
-      await api.put('/notifications/read-all');
-      setNotifications(notifications.map(n => ({ ...n, read: true })));
-    } catch (error) {
-      console.error('Failed to mark all notifications as read:', error);
-    }
-  };
-
-  const handleGoToPost = (postId) => {
-    handleNotificationClose();
-    navigate(`/post/${postId}`);
-  };
+  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [topicsOpen, setTopicsOpen] = useState(true);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const handleMenuOpen = (event) => {
+    setMenuAnchorEl(event.currentTarget);
+  };
 
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+  };
+
+  const handleNotificationsOpen = (event) => {
+    setNotificationsAnchorEl(event.currentTarget);
+    if (notifications.length > 0) {
+      setUnreadCount(0);
+    }
+  };
+
+  const handleNotificationsClose = () => {
+    setNotificationsAnchorEl(null);
+  };
+
+  const handleProfile = () => {
+    handleMenuClose();
+    navigate('/profile');
+  };
+
+  const handleLogout = () => {
+    handleMenuClose();
+    logout();
+    navigate('/login');
+  };
+
+  // Reddit-style sidebar content
   const drawer = (
-    <Box sx={{ p: 2, pt: 4 }}>
-      <Paper elevation={0} sx={{ borderRadius: 2, mb: 2, p: 2, backgroundColor: 'white' }}>
-        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-          FEEDS
-        </Typography>
-        <List disablePadding>
-          {categories.map((category) => (
-            <ListItem 
-              button 
-              key={category.name} 
-              component={Link} 
-              to={category.path}
-              onClick={() => isMobile && setMobileOpen(false)}
-              sx={{ 
-                borderRadius: 2,
-                mb: 0.5,
-                py: 1,
-                backgroundColor: category.name === activeCategory ? 'rgba(255, 69, 0, 0.1)' : 'transparent',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 69, 0, 0.1)'
-                }
-              }}
-            >
-              <ListItemIcon sx={{ color: category.name === activeCategory ? '#FF4500' : 'inherit', minWidth: 40 }}>
-                {category.icon}
-              </ListItemIcon>
-              <ListItemText 
-                primary={category.name} 
-                sx={{ 
-                  '& .MuiListItemText-primary': { 
-                    fontWeight: category.name === activeCategory ? 'bold' : 'normal',
-                    color: category.name === activeCategory ? '#FF4500' : 'inherit'
-                  } 
-                }} 
-              />
+    <Box sx={{ overflow: 'auto', py: 1.5, bgcolor: 'white', height: '100%' }}>
+      <List sx={{ px: 0 }}>
+        {categories.map((item) => {
+          const isActive = location.pathname === '/' && 
+            ((item.path === '/' && !location.search) || 
+             (location.search && item.path.includes(location.search)));
+          
+          return (
+            <ListItem key={item.name} disablePadding>
+              <ListItemButton
+                component={RouterLink}
+                to={item.path}
+                sx={{
+                  py: 1,
+                  px: 2,
+                  borderRadius: 0,
+                  color: isActive ? '#0079D3' : '#1A1A1B',
+                  backgroundColor: isActive ? 'rgba(0, 121, 211, 0.1)' : 'transparent',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  },
+                  fontWeight: isActive ? '500' : 'normal',
+                }}
+              >
+                <ListItemIcon sx={{ 
+                  minWidth: '36px',
+                  color: isActive ? '#0079D3' : '#878A8C',
+                }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText 
+                  primary={item.name} 
+                  primaryTypographyProps={{
+                    fontSize: '14px',
+                    fontWeight: isActive ? '500' : '400',
+                  }}
+                />
+              </ListItemButton>
             </ListItem>
-          ))}
-        </List>
-      </Paper>
-        
-      {user && (
-        <Paper elevation={0} sx={{ borderRadius: 2, p: 2, backgroundColor: 'white' }}>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            ACCOUNT
-          </Typography>
-          <ListItem 
-            button 
-            onClick={() => {
-              navigate('/profile');
-              if (isMobile) setMobileOpen(false);
-            }}
+          );
+        })}
+      </List>
+      
+      <Divider sx={{ my: 1.5 }} />
+      
+      {/* Topics Section - Collapsible */}
+      <Box sx={{ px: 2, mb: 1 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          cursor: 'pointer',
+          mb: 1
+        }}
+        onClick={() => setTopicsOpen(!topicsOpen)}
+        >
+          <Typography 
+            variant="subtitle2" 
             sx={{ 
-              borderRadius: 2,
-              py: 1,
-              '&:hover': {
-                backgroundColor: 'rgba(255, 69, 0, 0.1)'
-              }
+              fontSize: '10px', 
+              fontWeight: 'bold', 
+              color: '#878A8C',
+              textTransform: 'uppercase',
+              letterSpacing: '0.7px'
             }}
           >
-            <ListItemIcon sx={{ minWidth: 40 }}>
-              <AccountCircleIcon />
-            </ListItemIcon>
-            <ListItemText primary="Profile" />
-          </ListItem>
-        </Paper>
-      )}
+            Topics
+          </Typography>
+          <IconButton size="small" sx={{ p: 0 }}>
+            {topicsOpen ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+          </IconButton>
+        </Box>
+        
+        <Collapse in={topicsOpen} timeout="auto" unmountOnExit>
+          <List disablePadding>
+            {['Technology', 'Sports', 'Business', 'News', 'Entertainment'].map((topic) => (
+              <ListItem key={topic} disablePadding>
+                <ListItemButton
+                  sx={{
+                    py: 0.75,
+                    px: 1,
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                    },
+                  }}
+                >
+                  <ListItemText 
+                    primary={topic} 
+                    primaryTypographyProps={{
+                      fontSize: '14px',
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Collapse>
+      </Box>
       
-      <Paper elevation={0} sx={{ borderRadius: 2, mt: 2, p: 2, backgroundColor: 'white' }}>
-        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-          POPULAR COMMUNITIES
+      <Divider sx={{ my: 1.5 }} />
+      
+      {/* Resources Section */}
+      <Box sx={{ px: 2 }}>
+        <Typography 
+          variant="subtitle2" 
+          sx={{ 
+            fontSize: '10px', 
+            fontWeight: 'bold', 
+            color: '#878A8C',
+            textTransform: 'uppercase',
+            letterSpacing: '0.7px',
+            mb: 1
+          }}
+        >
+          Resources
         </Typography>
+        
         <List disablePadding>
-          {popularCommunities.map((community) => (
-            <ListItem 
-              button 
-              key={community.name}
-              onClick={() => isMobile && setMobileOpen(false)}
-              sx={{ 
-                borderRadius: 2,
-                mb: 0.5,
-                py: 1,
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 69, 0, 0.1)'
-                }
-              }}
-            >
-              <ListItemText 
-                primary={community.name} 
-                secondary={community.members} 
-                primaryTypographyProps={{ variant: 'body2' }}
-                secondaryTypographyProps={{ variant: 'caption' }}
-              />
+          {['About', 'Help Center', 'Terms of Service', 'Privacy Policy'].map((item) => (
+            <ListItem key={item} disablePadding>
+              <ListItemButton
+                sx={{
+                  py: 0.75,
+                  px: 1,
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  },
+                }}
+              >
+                <ListItemText 
+                  primary={item} 
+                  primaryTypographyProps={{
+                    fontSize: '14px',
+                  }}
+                />
+              </ListItemButton>
             </ListItem>
           ))}
         </List>
-      </Paper>
+      </Box>
     </Box>
   );
-
+  
   return (
-    <Box sx={{ display: 'flex', backgroundColor: '#DAE0E6', minHeight: '100vh' }}>
-      <AppBar position="fixed" sx={{ 
-        zIndex: (theme) => theme.zIndex.drawer + 1,
-        backgroundColor: 'white',
-        color: 'black',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-      }}>
-        <Toolbar sx={{ padding: isMobile ? '0 8px' : undefined }}>
-          {isMobile && (
+    <Box sx={{ display: 'flex', minHeight: '100vh', width: '100%', bgcolor: '#DAE0E6' }}>
+      {/* Reddit-style header */}
+      <AppBar 
+        position="fixed" 
+        elevation={0}
+        sx={{ 
+          zIndex: theme.zIndex.drawer + 1,
+          backgroundColor: 'white',
+          color: 'black',
+          borderBottom: '1px solid #EDEFF1',
+          height: '48px'
+        }}
+      >
+        <Toolbar sx={{ minHeight: '48px !important', height: '48px', px: { xs: 1, sm: 2 } }}>
+          {/* Left section: Logo and menu toggle */}
+          <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
             <IconButton
               color="inherit"
               aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{ mr: 1 }}
+              sx={{ mr: 1, display: { sm: 'none' } }}
             >
               <MenuIcon />
             </IconButton>
-          )}
+            
+            <RouterLink to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+              <RedditLogo />
+            </RouterLink>
+          </Box>
           
-          <IconButton 
-            edge="start" 
-            color="inherit" 
-            sx={{ mr: isMobile ? 0 : 1 }}
-            onClick={() => navigate('/')}
-          >
-            <BullseyeIcon />
-          </IconButton>
-          <Typography 
-            variant="h6" 
-            component="div" 
-            sx={{ 
-              cursor: 'pointer', 
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
-              color: '#FF4500',
-              fontSize: isMobile ? '1rem' : '1.25rem',
-            }}
-            onClick={() => navigate('/')}
-          >
-            Bullseye
-          </Typography>
-
-          {!isMobile && (
-            <Search>
-              <SearchIconWrapper>
-                <SearchIcon />
-              </SearchIconWrapper>
-              <StyledInputBase
-                placeholder="Search Bullseye"
-                inputProps={{ 'aria-label': 'search' }}
-              />
-            </Search>
-          )}
-
-          <Box sx={{ flexGrow: 1 }} />
-
-          {user ? (
-            <>
-              <Tooltip title="Notifications">
+          {/* Middle section: Search bar */}
+          <Search sx={{ flexGrow: 1, maxWidth: { sm: 400, md: 500 } }}>
+            <SearchIconWrapper>
+              <SearchIcon />
+            </SearchIconWrapper>
+            <StyledInputBase
+              placeholder="Search Bullseye"
+              inputProps={{ 'aria-label': 'search' }}
+            />
+          </Search>
+          
+          {/* Right section: User actions */}
+          <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
+            {user ? (
+              <>
                 <IconButton 
-                  color="inherit" 
-                  onClick={handleNotificationClick}
-                  sx={{ mx: isMobile ? 0.5 : 1 }}
-                  aria-label="notifications"
+                  size="small"
+                  onClick={handleNotificationsOpen}
                 >
                   <StyledBadge badgeContent={unreadCount} color="error">
-                    <NotificationsIcon />
+                    <NotificationsIcon fontSize="small" />
                   </StyledBadge>
                 </IconButton>
-              </Tooltip>
-
-              {isMobile ? (
-                <IconButton 
-                  color="inherit" 
-                  onClick={() => navigate('/profile')}
-                  sx={{ mx: 0.5 }}
-                >
-                  <Avatar sx={{ width: 28, height: 28, bgcolor: '#FF4500' }}>
-                    {user.username ? user.username[0].toUpperCase() : '?'}
-                  </Avatar>
-                </IconButton>
-              ) : (
-                <>
-                  <Button 
-                    color="inherit" 
-                    onClick={() => navigate('/profile')}
-                    startIcon={<Avatar sx={{ width: 28, height: 28, bgcolor: '#FF4500' }}>{user.username ? user.username[0].toUpperCase() : '?'}</Avatar>}
-                    sx={{ 
-                      ml: 1, 
-                      textTransform: 'none',
-                      borderRadius: '20px',
-                      '&:hover': {
-                        backgroundColor: 'rgba(0,0,0,0.04)'
-                      }
-                    }}
-                  >
-                    {user.username}
-                  </Button>
-                  
-                  <Button 
-                    color="inherit" 
-                    onClick={logout}
-                    sx={{ 
-                      ml: 1,
-                      borderRadius: '20px',
-                      '&:hover': {
-                        backgroundColor: 'rgba(0,0,0,0.04)'
-                      }
-                    }}
-                  >
-                    Logout
-                  </Button>
-                </>
-              )}
-            </>
-          ) : (
-            <>
-              {isMobile ? (
-                <Button 
-                  variant="contained" 
-                  onClick={() => navigate('/login')}
+                
+                <Button
+                  onClick={handleMenuOpen}
+                  variant="text"
+                  size="small"
                   sx={{ 
-                    borderRadius: 20,
-                    minWidth: 0,
-                    px: 1.5,
-                    backgroundColor: '#FF4500',
-                    '&:hover': {
-                      backgroundColor: '#E03D00'
-                    }
+                    ml: 1, 
+                    color: 'inherit',
+                    textTransform: 'none',
+                    fontSize: '14px',
+                    borderRadius: '4px',
+                    '&:hover': { bgcolor: '#f6f7f8' }
+                  }}
+                  endIcon={<KeyboardArrowDownIcon />}
+                  startIcon={
+                    <Avatar 
+                      sx={{ 
+                        width: 24, 
+                        height: 24,
+                        fontSize: '12px',
+                        bgcolor: '#FF4500'
+                      }}
+                    >
+                      {user?.username?.charAt(0).toUpperCase() || 'U'}
+                    </Avatar>
+                  }
+                >
+                  {isMobile ? '' : user?.username}
+                </Button>
+                
+                <Menu
+                  anchorEl={menuAnchorEl}
+                  open={Boolean(menuAnchorEl)}
+                  onClose={handleMenuClose}
+                  transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                  anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                >
+                  <MenuItem onClick={handleProfile}>Profile</MenuItem>
+                  <MenuItem onClick={handleLogout}>Log Out</MenuItem>
+                </Menu>
+                
+                <Menu
+                  anchorEl={notificationsAnchorEl}
+                  open={Boolean(notificationsAnchorEl)}
+                  onClose={handleNotificationsClose}
+                  transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                  anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                >
+                  <MenuItem disabled={notifications.length === 0}>
+                    {notifications.length === 0 ? 'No new notifications' : 'Mark all as read'}
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <>
+                <Button 
+                  variant="outlined"
+                  component={RouterLink} 
+                  to="/login"
+                  size="small"
+                  sx={{ 
+                    borderRadius: '20px',
+                    borderColor: '#0079D3',
+                    color: '#0079D3',
+                    textTransform: 'none',
+                    mr: 1,
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    '&:hover': { borderColor: '#0079D3', bgcolor: 'rgba(0,121,211,0.05)' }
                   }}
                 >
-                  Login
+                  Log In
                 </Button>
-              ) : (
-                <>
-                  <Button 
-                    color="inherit" 
-                    onClick={() => navigate('/login')}
-                    sx={{ 
-                      borderRadius: 20,
-                      mr: 1,
-                      '&:hover': {
-                        backgroundColor: 'rgba(255, 69, 0, 0.1)'
-                      }
-                    }}
-                  >
-                    Log In
-                  </Button>
-                  <Button 
-                    variant="contained" 
-                    onClick={() => navigate('/register')}
-                    sx={{ 
-                      borderRadius: 20,
-                      backgroundColor: '#FF4500',
-                      '&:hover': {
-                        backgroundColor: '#E03D00'
-                      }
-                    }}
-                  >
-                    Sign Up
-                  </Button>
-                </>
-              )}
-            </>
-          )}
+                
+                <Button 
+                  variant="contained"
+                  component={RouterLink} 
+                  to="/register"
+                  size="small"
+                  sx={{ 
+                    borderRadius: '20px',
+                    bgcolor: '#FF4500',
+                    color: 'white',
+                    textTransform: 'none',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    '&:hover': { bgcolor: '#E03D00' }
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
+          </Box>
         </Toolbar>
       </AppBar>
       
-      {/* Notifications Menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleNotificationClose}
-        PaperProps={{
-          sx: { 
-            width: isMobile ? '300px' : '350px',
-            maxHeight: '400px',
-            mt: 1,
-            borderRadius: 2
-          }
+      {/* Left sidebar - desktop */}
+      <Drawer
+        variant="permanent"
+        sx={{
+          display: { xs: 'none', sm: 'block' },
+          '& .MuiDrawer-paper': { 
+            boxSizing: 'border-box', 
+            width: drawerWidth,
+            borderRight: 'none',
+            marginTop: '48px',
+            height: 'calc(100% - 48px)',
+          },
+          width: drawerWidth,
+          flexShrink: 0,
+        }}
+        open
+      >
+        {drawer}
+      </Drawer>
+      
+      {/* Left sidebar - mobile */}
+      <SwipeableDrawer
+        variant="temporary"
+        open={mobileOpen}
+        onOpen={handleDrawerToggle}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true, // Better performance on mobile
+        }}
+        sx={{
+          display: { xs: 'block', sm: 'none' },
+          '& .MuiDrawer-paper': { 
+            boxSizing: 'border-box', 
+            width: drawerWidth,
+            marginTop: '48px',
+            height: 'calc(100% - 48px)',
+          },
         }}
       >
-        <Box sx={{ p: 1.5, borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="subtitle1" fontWeight="bold">Notifications</Typography>
-          {unreadCount > 0 && (
-            <Tooltip title="Mark all as read">
-              <IconButton size="small" onClick={handleMarkAllRead}>
-                <MarkChatReadIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-        </Box>
-        {notifications.length === 0 ? (
-          <MenuItem disabled>
-            <Box sx={{ py: 2, textAlign: 'center', width: '100%' }}>
-              <Typography variant="body2" color="text.secondary">No notifications</Typography>
-            </Box>
-          </MenuItem>
-        ) : (
-          notifications.map(notification => (
-            <MenuItem 
-              key={notification._id} 
-              onClick={() => {
-                handleNotificationRead(notification._id);
-                if (notification.postId) {
-                  handleGoToPost(notification.postId);
-                }
-              }}
-              sx={{ 
-                whiteSpace: 'normal',
-                py: 1.5,
-                px: 2,
-                borderLeft: notification.read ? 'none' : '3px solid #FF4500',
-                bgcolor: notification.read ? 'transparent' : 'rgba(255, 69, 0, 0.05)'
-              }}
-            >
-              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="body2" sx={{ fontWeight: notification.read ? 'normal' : 'bold' }}>
-                  {notification.message}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
-                  {new Date(notification.createdAt).toLocaleString()}
-                </Typography>
-              </Box>
-            </MenuItem>
-          ))
-        )}
-      </Menu>
+        {drawer}
+      </SwipeableDrawer>
       
-      {/* Mobile drawer */}
-      {isMobile ? (
-        <SwipeableDrawer
-          open={mobileOpen}
-          onOpen={() => setMobileOpen(true)}
-          onClose={() => setMobileOpen(false)}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile
-          }}
-          sx={{
-            display: { xs: 'block', sm: 'block', md: 'none' },
-            '& .MuiDrawer-paper': { 
-              boxSizing: 'border-box', 
-              width: drawerWidth,
-              marginTop: '56px', // Adjust for smaller mobile app bar
-            },
-          }}
-        >
-          {drawer}
-        </SwipeableDrawer>
-      ) : (
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', sm: 'none', md: 'block' },
-            width: drawerWidth,
-            flexShrink: 0,
-            '& .MuiDrawer-paper': {
-              width: drawerWidth,
-              boxSizing: 'border-box',
-              marginTop: '64px',
-              borderRight: 'none',
-              backgroundColor: 'transparent',
-            },
-          }}
-        >
-          {drawer}
-        </Drawer>
-      )}
-      
+      {/* Main content */}
       <Box
         component="main"
-        sx={{ 
-          flexGrow: 1, 
-          p: 3, 
+        sx={{
+          flexGrow: 1,
+          p: 0,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          marginLeft: isMobile ? 0 : drawerWidth,
-          marginTop: { xs: '56px', sm: '64px' },
-          paddingTop: 4,
-          paddingX: isMobile ? 1 : 3
+          marginLeft: { sm: `${drawerWidth}px` },
+          marginTop: '48px',
+          minHeight: 'calc(100vh - 48px)',
+          bgcolor: '#DAE0E6'
         }}
       >
-        <Container maxWidth="lg">
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={8}>
-              {children}
-            </Grid>
-            <Grid item xs={12} md={4} sx={{ display: { xs: 'none', md: 'block' } }}>
-              <Paper sx={{ p: 2.5, mb: 3, borderRadius: 2 }}>
-                <Typography variant="h6" gutterBottom fontWeight="bold">
-                  Popular Communities
-                </Typography>
-                <List dense>
-                  {popularCommunities.map((community, index) => (
-                    <ListItem 
-                      key={index}
-                      button
-                      sx={{
-                        borderRadius: 1,
-                        '&:hover': {
-                          backgroundColor: 'rgba(0,0,0,0.04)'
-                        }
-                      }}
-                    >
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <Avatar 
-                          sx={{ 
-                            width: 24, 
-                            height: 24, 
-                            bgcolor: index < 3 ? '#FF4500' : '#0079D3',
-                            fontSize: '12px'
-                          }}
-                        >
-                          {community.name.split('/')[1][0].toUpperCase()}
-                        </Avatar>
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={community.name} 
-                        secondary={`${community.members} members`}
-                        primaryTypographyProps={{ variant: 'body2', fontWeight: 'medium' }}
-                        secondaryTypographyProps={{ variant: 'caption' }}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-                  <Button 
-                    size="small" 
-                    sx={{ 
-                      textTransform: 'none', 
-                      color: '#0079D3',
-                      '&:hover': {
-                        backgroundColor: 'rgba(0, 121, 211, 0.1)'
-                      }
-                    }}
-                  >
-                    View All Communities
-                  </Button>
-                </Box>
-              </Paper>
-              
-              <Paper sx={{ p: 2.5, borderRadius: 2 }}>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  Bullseye is a community forum where you can share links, ask questions, and discuss various topics.
-                </Typography>
-                <Divider sx={{ my: 1.5 }} />
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center' }}>
-                  {new Date().getFullYear()} Bullseye Community Forum
-                </Typography>
-              </Paper>
-            </Grid>
-          </Grid>
-        </Container>
+        {children}
       </Box>
     </Box>
   );
 }
+
+export default Layout;

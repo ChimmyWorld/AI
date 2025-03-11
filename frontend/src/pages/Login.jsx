@@ -21,9 +21,24 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await login(formData.username, formData.password);
-    if (success) {
-      navigate('/');
+    
+    // Basic validation
+    if (!formData.username.trim()) {
+      return; // Form validation will handle this
+    }
+    
+    if (!formData.password) {
+      return; // Form validation will handle this
+    }
+    
+    try {
+      const success = await login(formData.username, formData.password);
+      if (success) {
+        navigate('/');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      // Error will be displayed through the useAuth hook's error state
     }
   };
 

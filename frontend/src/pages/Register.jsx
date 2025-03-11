@@ -26,14 +26,41 @@ export default function Register() {
     e.preventDefault();
     setValidationError('');
 
+    // Additional validation
+    if (!formData.username.trim()) {
+      setValidationError('Username is required');
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      setValidationError('Email is required');
+      return;
+    }
+
+    if (!formData.password) {
+      setValidationError('Password is required');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setValidationError('Passwords do not match');
       return;
     }
 
-    const success = await register(formData.username, formData.email, formData.password);
-    if (success) {
-      navigate('/');
+    // Add minimum password length check
+    if (formData.password.length < 6) {
+      setValidationError('Password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      const success = await register(formData.username, formData.email, formData.password);
+      if (success) {
+        navigate('/');
+      }
+    } catch (err) {
+      console.error('Registration error:', err);
+      setValidationError(err.message || 'Registration failed. Please try again.');
     }
   };
 
