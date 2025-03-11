@@ -23,6 +23,10 @@ const requestLogger = (req, res, next) => {
 
 app.use(requestLogger);
 
+// Add body parser middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // Modify static file serving and SPA handling
 // Clear CORS headers for production
 app.use(cors({
