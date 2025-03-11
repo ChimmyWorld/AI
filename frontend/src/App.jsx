@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import PostDetail from './pages/PostDetail';
 import ErrorBoundary from './components/ErrorBoundary';
+import PostCard from './components/PostCard';
 
 const theme = createTheme({
   palette: {
@@ -76,6 +77,18 @@ const routerOptions = {
 };
 
 function App() {
+  console.log('=== APP VERSION ===');
+  console.log('Version: 1.1.0 - Reddit UI Update');
+  console.log('Build time:', new Date().toISOString());
+  console.log('Environment:', import.meta.env.MODE);
+  console.log('Components loaded:', 
+    Boolean(Layout) ? 'Layout ✓' : 'Layout ✗',
+    Boolean(Home) ? 'Home ✓' : 'Home ✗', 
+    Boolean(PostDetail) ? 'PostDetail ✓' : 'PostDetail ✗',
+    Boolean(PostCard) ? 'PostCard ✓' : 'PostCard ✗'
+  );
+  console.log('==================');
+  
   return (
     <ErrorBoundary>
       <ThemeProvider theme={theme}>

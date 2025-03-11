@@ -53,16 +53,66 @@ app.use('/api/posts', postRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/users', userRoutes);
 
+// Add diagnostic endpoint
+app.get('/api/diagnostic', async (req, res) => {
+  try {
+    const diagnostic = {
+      serverTime: new Date().toISOString(),
+      version: '1.1.0 - Reddit UI Update',
+      environment: process.env.NODE_ENV || 'development',
+      staticPath: path.resolve(__dirname, 'frontend/dist'),
+      staticExists: fs.existsSync(path.resolve(__dirname, 'frontend/dist')),
+      indexExists: fs.existsSync(path.resolve(__dirname, 'frontend/dist/index.html')),
+      serverStartTime: new Date(Date.now() - process.uptime() * 1000).toISOString(),
+      uptime: process.uptime(),
+      nodeVersion: process.version,
+      memoryUsage: process.memoryUsage(),
+      endpoints: [
+        { method: 'GET', path: '/api/posts', handler: 'getAllPosts' },
+        { method: 'POST', path: '/api/posts', handler: 'createPost' },
+        { method: 'GET', path: '/api/posts/:id', handler: 'getPostById' },
+        { method: 'GET', path: '/api/diagnostic', handler: 'diagnostic' }
+      ]
+    };
+    
+    return res.json(diagnostic);
+  } catch (error) {
+    return res.status(500).json({ error: error.message, stack: error.stack });
+  }
+});
+
 // Serve static assets - use public directory as primary since that's where Vite builds to
 app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: '1h',
-  setHeaders: (res, path) => {
-    if (path.endsWith('.html')) {
-      // Don't cache HTML files
-      res.setHeader('Cache-Control', 'no-cache');
-    }
-  }
 }));
+
+// Modify this to EXPLICITLY direct the route to use frontend/dist
+// This is the most likely cause of our deployment issue
+app.use(express.static(path.join(__dirname, 'frontend/dist'), {
+  maxAge: '1h',
+}));
+
+// Important: Add a wildcard route to handle SPA routing - this ensures React Router works
+app.get('*', (req, res) => {
+  // Check if the request is for an API route
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API route not found' });
+  }
+  
+  // For non-API routes, serve the React app
+  const frontendPath = path.resolve(__dirname, 'frontend/dist/index.html');
+  
+  // Log that we're serving the frontend for debugging
+  console.log(`Serving frontend from: ${frontendPath}`);
+  
+  // First check if the file exists
+  if (fs.existsSync(frontendPath)) {
+    return res.sendFile(frontendPath);
+  } else {
+    // If not, try the public folder as fallback
+    return res.sendFile(path.resolve(__dirname, 'public/index.html'));
+  }
+});
 
 // Create simple HTML for error cases
 const errorHtml = `
@@ -119,19 +169,6 @@ app.get('/healthcheck', (req, res) => {
       files: publicExists ? fs.readdirSync(path.join(__dirname, 'public')) : []
     }
   });
-});
-
-// Handle React routing with special error handling
-app.get('*', (req, res) => {
-  const indexPath = path.join(__dirname, 'public/index.html');
-  
-  if (fs.existsSync(indexPath)) {
-    return res.sendFile(indexPath);
-  }
-  
-  // If no index.html found, create a simple one
-  console.error('ERROR: No index.html found!');
-  res.send(errorHtml);
 });
 
 // Basic error handler
