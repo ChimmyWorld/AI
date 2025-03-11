@@ -25,7 +25,9 @@ import {
   useTheme, 
   SwipeableDrawer, 
   Collapse, 
-  ListItemButton 
+  ListItemButton,
+  InputAdornment,
+  CircularProgress
 } from '@mui/material';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
@@ -43,10 +45,10 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import ChatIcon from '@mui/icons-material/Chat';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import CloseIcon from '@mui/icons-material/Close';
 import { styled, alpha } from '@mui/material/styles';
 import { useAuth } from '../hooks/useAuth';
 import api from '../api';
-import BullseyeLogo from './BullseyeLogo';
 
 const drawerWidth = 220;
 
@@ -58,6 +60,35 @@ const categories = [
   { name: 'AI', icon: <SmartToyIcon />, path: '/?category=ai' }
 ];
 
+// Reddit-style logo
+const RedditLogo = () => (
+  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    <Box
+      component="div"
+      sx={{
+        width: 32,
+        height: 32,
+        backgroundColor: '#FF4500',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        mr: 1
+      }}
+    >
+      <Typography variant="h6" fontWeight="bold">B</Typography>
+    </Box>
+    <Typography
+      variant="h6"
+      noWrap
+      sx={{ color: 'black', fontWeight: 'bold', display: { xs: 'none', sm: 'block' } }}
+    >
+      bullseye
+    </Typography>
+  </Box>
+);
+
 // Reddit-like style for badges
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -67,58 +98,84 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
   },
 }));
 
-// Reddit-style search box
+// Reddit-like search bar
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
-  borderRadius: 20,
+  borderRadius: '20px',
   backgroundColor: alpha(theme.palette.common.white, 0.9),
   '&:hover': {
     backgroundColor: alpha(theme.palette.common.white, 1),
   },
-  marginRight: theme.spacing(1),
-  marginLeft: theme.spacing(1),
+  border: '1px solid #ccc',
+  marginRight: theme.spacing(2),
+  marginLeft: 0,
   width: '100%',
-  border: '1px solid #edeff1',
   [theme.breakpoints.up('sm')]: {
+    marginLeft: theme.spacing(3),
     width: 'auto',
-    minWidth: '300px',
-  },
-}));
-
-const SearchIconWrapper = styled('div')(({ theme }) => ({
-  padding: theme.spacing(0, 1),
-  height: '100%',
-  position: 'absolute',
-  pointerEvents: 'none',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  color: '#878A8C',
-}));
-
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: 'inherit',
-  width: '100%',
-  '& .MuiInputBase-input': {
-    padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(3)})`,
-    transition: theme.transitions.create('width'),
-    width: '100%',
   },
 }));
 
 function Layout({ children }) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const matches = useMediaQuery(theme.breakpoints.up('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
-  const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [topicsOpen, setTopicsOpen] = useState(true);
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
+  const [expandedCategories, setExpandedCategories] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchAnchorEl, setSearchAnchorEl] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  // Search functionality
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+    
+    if (event.target.value.trim()) {
+      setSearchAnchorEl(event.currentTarget);
+      performSearch(event.target.value);
+    } else {
+      setSearchAnchorEl(null);
+      setSearchResults([]);
+    }
+  };
+  
+  const performSearch = async (query) => {
+    if (!query || query.trim().length < 2) return;
+    
+    setIsSearching(true);
+    try {
+      // Search posts
+      const response = await api.get(`/posts/search?q=${encodeURIComponent(query)}`);
+      setSearchResults(response.data || []);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+  
+  const handleSearchClose = () => {
+    setSearchAnchorEl(null);
+  };
+  
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setSearchAnchorEl(null);
+  };
+  
+  const handleSearchResultClick = (postId) => {
+    navigate(`/post/${postId}`);
+    handleSearchClose();
+    setSearchQuery('');
+  };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -135,7 +192,7 @@ function Layout({ children }) {
   const handleNotificationsOpen = (event) => {
     setNotificationsAnchorEl(event.currentTarget);
     if (notifications.length > 0) {
-      setUnreadCount(0);
+      setNotifications([]);
     }
   };
 
@@ -210,7 +267,7 @@ function Layout({ children }) {
           cursor: 'pointer',
           mb: 1
         }}
-        onClick={() => setTopicsOpen(!topicsOpen)}
+        onClick={() => setExpandedCategories(!expandedCategories)}
         >
           <Typography 
             variant="subtitle2" 
@@ -225,11 +282,11 @@ function Layout({ children }) {
             Topics
           </Typography>
           <IconButton size="small" sx={{ p: 0 }}>
-            {topicsOpen ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+            {expandedCategories ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
           </IconButton>
         </Box>
         
-        <Collapse in={topicsOpen} timeout="auto" unmountOnExit>
+        <Collapse in={expandedCategories} timeout="auto" unmountOnExit>
           <List disablePadding>
             {['Technology', 'Sports', 'Business', 'News', 'Entertainment'].map((topic) => (
               <ListItem key={topic} disablePadding>
@@ -331,20 +388,111 @@ function Layout({ children }) {
             </IconButton>
             
             <RouterLink to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-              <BullseyeLogo />
+              <RedditLogo />
             </RouterLink>
           </Box>
           
           {/* Middle section: Search bar */}
-          <Search sx={{ flexGrow: 1, maxWidth: { sm: 400, md: 500 } }}>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              placeholder="Search Bullseye"
-              inputProps={{ 'aria-label': 'search' }}
-            />
-          </Search>
+          <Box sx={{ 
+            display: 'flex', 
+            flexGrow: 1, 
+            justifyContent: 'center', 
+            mx: { xs: 1, sm: 2 }
+          }}>
+            <Search sx={{ 
+              width: { xs: '100%', sm: '400px' },
+              maxWidth: '800px'
+            }}>
+              <InputBase
+                placeholder="Search Bullseye…"
+                inputProps={{ 'aria-label': 'search' }}
+                value={searchQuery}
+                onChange={handleSearchChange}
+                sx={{ 
+                  color: 'inherit', 
+                  width: '100%',
+                  pl: 2,
+                  pr: searchQuery ? 0 : 2,
+                  py: 0.5
+                }}
+                endAdornment={
+                  <InputAdornment position="end">
+                    {isSearching ? (
+                      <CircularProgress size={20} sx={{ mr: 1 }} />
+                    ) : searchQuery ? (
+                      <IconButton 
+                        size="small" 
+                        onClick={handleClearSearch}
+                        sx={{ mr: 0.5 }}
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    ) : (
+                      <SearchIcon sx={{ mr: 1 }} />
+                    )}
+                  </InputAdornment>
+                }
+              />
+              
+              {/* Search results dropdown */}
+              <Menu
+                anchorEl={searchAnchorEl}
+                open={Boolean(searchAnchorEl)}
+                onClose={handleSearchClose}
+                PaperProps={{
+                  sx: {
+                    width: { xs: '300px', sm: '400px' },
+                    maxHeight: '400px',
+                    mt: 1,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                  }
+                }}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'center',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'center',
+                }}
+              >
+                {isSearching ? (
+                  <Box sx={{ p: 2, textAlign: 'center' }}>
+                    <CircularProgress size={24} />
+                  </Box>
+                ) : searchResults.length > 0 ? (
+                  searchResults.map(post => (
+                    <MenuItem 
+                      key={post._id} 
+                      onClick={() => handleSearchResultClick(post._id)}
+                      sx={{ py: 1.5 }}
+                    >
+                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant="subtitle2" noWrap>
+                          {post.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" noWrap>
+                          in {post.category} • by u/{post.author.username}
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                  ))
+                ) : searchQuery.trim().length >= 2 ? (
+                  <Box sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      No results found for "{searchQuery}"
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Type at least 2 characters to search
+                    </Typography>
+                  </Box>
+                )}
+              </Menu>
+            </Search>
+          </Box>
           
           {/* Right section: User actions */}
           <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
@@ -354,7 +502,7 @@ function Layout({ children }) {
                   size="small"
                   onClick={handleNotificationsOpen}
                 >
-                  <StyledBadge badgeContent={unreadCount} color="error">
+                  <StyledBadge badgeContent={0} color="error">
                     <NotificationsIcon fontSize="small" />
                   </StyledBadge>
                 </IconButton>
@@ -385,7 +533,7 @@ function Layout({ children }) {
                     </Avatar>
                   }
                 >
-                  {isMobile ? '' : user?.username}
+                  {matches ? user?.username : ''}
                 </Button>
                 
                 <Menu
@@ -472,28 +620,17 @@ function Layout({ children }) {
                     justifyContent: 'center'
                   }}>
                     <Typography variant="h6" sx={{ p: 2, fontWeight: 'medium', fontSize: '16px' }}>
-                      {notifications.length === 0 ? 'No new notifications' : 'Notifications'}
+                      No new notifications
                     </Typography>
-                    {notifications.length === 0 && (
-                      <Box sx={{ 
-                        p: 2, 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mb: 2
-                      }}>
-                        <Box 
-                          component="img" 
-                          src="https://i.imgur.com/OoXoEbP.png" 
-                          alt="Bullseye mascot" 
-                          sx={{ width: 100, height: 100, mb: 2 }}
-                        />
-                        <Typography variant="body2" sx={{ color: '#878A8C', textAlign: 'center' }}>
-                          Nothing to see here yet!
-                        </Typography>
-                      </Box>
-                    )}
+                    <Box 
+                      component="img" 
+                      src="https://i.imgur.com/OoXoEbP.png" 
+                      alt="Bullseye mascot" 
+                      sx={{ width: 100, height: 100, mb: 2 }}
+                    />
+                    <Typography variant="body2" sx={{ color: '#878A8C', textAlign: 'center' }}>
+                      Nothing to see here yet!
+                    </Typography>
                   </Box>
                 </Menu>
               </>

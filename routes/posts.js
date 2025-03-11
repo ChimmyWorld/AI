@@ -61,6 +61,36 @@ router.post('/', auth, upload.array('media', 5), async (req, res) => {
   }
 });
 
+// Search posts
+router.get('/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 2) {
+      return res.json([]);
+    }
+
+    // Create a regex for case-insensitive search
+    const searchRegex = new RegExp(q, 'i');
+    
+    // Search in title and content
+    const posts = await Post.find({
+      $or: [
+        { title: { $regex: searchRegex } },
+        { content: { $regex: searchRegex } }
+      ]
+    })
+    .populate('author', 'username karma')
+    .sort('-createdAt')
+    .limit(10)
+    .exec();
+    
+    res.json(posts);
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Get posts by category
 router.get('/category/:category', async (req, res) => {
   try {
