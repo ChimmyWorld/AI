@@ -45,7 +45,7 @@ npx expo start
 To build an Android APK for distribution:
 
 ```
-eas build -p android --profile production
+eas build -p android --profile apk
 ```
 
 ## Environment Variables
