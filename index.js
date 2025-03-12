@@ -1,6 +1,28 @@
-import { AppRegistry, Platform } from 'react-native';
+import { AppRegistry, Platform, LogBox, ErrorUtils } from 'react-native';
 import App from './src/App';
 import { name as appName } from './app.json';
+
+// Ignore specific warnings that might clutter logs
+LogBox.ignoreLogs([
+  'Warning: componentWillReceiveProps',
+  'Warning: componentWillMount',
+  'Remote debugger',
+]);
+
+// Global error handler for uncaught JS errors
+const errorHandler = (error, isFatal) => {
+  console.error('Unhandled error:', error);
+  
+  if (isFatal) {
+    console.error('FATAL ERROR:', error.name, error.message);
+    console.error('Stack:', error.stack);
+  }
+};
+
+// Set up the global error handler
+if (Platform.OS !== 'web') {
+  ErrorUtils.setGlobalHandler(errorHandler);
+}
 
 // Register the app with the correct name
 if (Platform.OS === 'web') {
@@ -25,5 +47,5 @@ if (Platform.OS === 'web') {
   }
 } else {
   // For native platforms
-  AppRegistry.registerComponent('BullseyeMobile', () => App);
+  AppRegistry.registerComponent(appName, () => App);
 }

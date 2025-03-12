@@ -1,7 +1,53 @@
-import React, { useState } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet, Text, View, Platform, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView, StatusBar, StyleSheet, Text, View, Platform, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './hooks/useAuth';
+
+// Error boundary component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    this.setState({ error, errorInfo });
+    console.error("App crashed with error:", error, errorInfo);
+    
+    // You can send this error to a logging service
+    if (Platform.OS !== 'web') {
+      Alert.alert(
+        "App Error",
+        `The app crashed with error: ${error.toString()}. Please report this issue.`,
+        [{ text: "OK" }]
+      );
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorTitle}>Something went wrong</Text>
+          <Text style={styles.errorText}>
+            {this.state.error && this.state.error.toString()}
+          </Text>
+          <TouchableOpacity 
+            style={styles.button}
+            onPress={() => this.setState({ hasError: false })}
+          >
+            <Text style={styles.buttonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Simple MVP screens
 const LoginScreen = ({ onLogin }) => (
@@ -155,23 +201,54 @@ const PostDetailScreen = ({ onBack }) => (
 
 const App = () => {
   const [screen, setScreen] = useState('login'); // 'login', 'home', 'post'
+  const [appReady, setAppReady] = useState(false);
+  
+  useEffect(() => {
+    // Simulate app initialization
+    const prepareApp = async () => {
+      try {
+        // Add any initialization logic here
+        console.log('App initialized successfully');
+        setAppReady(true);
+      } catch (error) {
+        console.error('Failed to initialize app:', error);
+        Alert.alert('Initialization Error', error.toString());
+      }
+    };
+    
+    prepareApp();
+  }, []);
   
   const handleLogin = () => setScreen('home');
   const handleLogout = () => setScreen('login');
   const handleViewPost = () => setScreen('post');
   const handleBackToHome = () => setScreen('home');
   
+  if (!appReady) {
+    return (
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <Text>Loading Bullseye...</Text>
+          </View>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    );
+  }
+  
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
-        <AuthProvider>
-          {screen === 'login' && <LoginScreen onLogin={handleLogin} />}
-          {screen === 'home' && <HomeScreen onLogout={handleLogout} onViewPost={handleViewPost} />}
-          {screen === 'post' && <PostDetailScreen onBack={handleBackToHome} />}
-        </AuthProvider>
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.container}>
+          <StatusBar barStyle="dark-content" />
+          <AuthProvider>
+            {screen === 'login' && <LoginScreen onLogin={handleLogin} />}
+            {screen === 'home' && <HomeScreen onLogout={handleLogout} onViewPost={handleViewPost} />}
+            {screen === 'post' && <PostDetailScreen onBack={handleBackToHome} />}
+          </AuthProvider>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 };
 
@@ -476,6 +553,29 @@ const styles = StyleSheet.create({
     minHeight: 80,
     backgroundColor: '#fcfcfc',
     marginBottom: 10,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#FF4500',
+  },
+  errorText: {
+    fontSize: 14,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 });
 
