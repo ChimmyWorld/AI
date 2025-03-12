@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet, Text, View, Platform, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView, StatusBar, StyleSheet, Text, View, Platform, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './hooks/useAuth';
+import BullseyeSplash from './assets/splash';  // This import is correct
+import TermsAndConditionsScreen from './screens/TermsAndConditionsScreen';
+import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
+import RegisterScreen from './screens/RegisterScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Error boundary component
 class ErrorBoundary extends React.Component {
@@ -50,7 +55,7 @@ class ErrorBoundary extends React.Component {
 }
 
 // Simple MVP screens
-const LoginScreen = ({ onLogin }) => (
+const LoginScreen = ({ onLogin, onRegister }) => (
   <View style={styles.screenContainer}>
     <Text style={styles.screenTitle}>Login Screen</Text>
     <View style={styles.formGroup}>
@@ -63,6 +68,9 @@ const LoginScreen = ({ onLogin }) => (
     </View>
     <TouchableOpacity style={styles.button} onPress={onLogin}>
       <Text style={styles.buttonText}>Login</Text>
+    </TouchableOpacity>
+    <TouchableOpacity onPress={onRegister}>
+      <Text style={styles.linkText}>Don't have an account? Sign up</Text>
     </TouchableOpacity>
     <Text style={styles.helperText}>* For demo, any credentials will work</Text>
   </View>
@@ -199,17 +207,60 @@ const PostDetailScreen = ({ onBack }) => (
   </View>
 );
 
+const RegisterScreen = ({ onRegisterComplete }) => (
+  <View style={styles.screenContainer}>
+    <Text style={styles.screenTitle}>Register Screen</Text>
+    <View style={styles.formGroup}>
+      <Text style={styles.label}>Username</Text>
+      <View style={styles.input}><Text>demo@example.com</Text></View>
+    </View>
+    <View style={styles.formGroup}>
+      <Text style={styles.label}>Password</Text>
+      <View style={styles.input}><Text>********</Text></View>
+    </View>
+    <TouchableOpacity style={styles.button} onPress={onRegisterComplete}>
+      <Text style={styles.buttonText}>Register</Text>
+    </TouchableOpacity>
+  </View>
+);
+
 const App = () => {
-  const [screen, setScreen] = useState('login'); // 'login', 'home', 'post'
+  const [screen, setScreen] = useState('splash'); // 'splash', 'terms', 'privacy', 'login', 'register', 'home', 'post'
   const [appReady, setAppReady] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   
   useEffect(() => {
+    // Check if terms and privacy have been accepted previously
+    const checkAcceptance = async () => {
+      try {
+        const hasAcceptedTerms = await AsyncStorage.getItem('termsAccepted');
+        const hasAcceptedPrivacy = await AsyncStorage.getItem('privacyAccepted');
+        
+        if (hasAcceptedTerms === 'true') {
+          setTermsAccepted(true);
+        }
+        
+        if (hasAcceptedPrivacy === 'true') {
+          setPrivacyAccepted(true);
+        }
+      } catch (error) {
+        console.error('Failed to check acceptance status:', error);
+      }
+    };
+    
     // Simulate app initialization
     const prepareApp = async () => {
       try {
-        // Add any initialization logic here
+        await checkAcceptance();
+        
+        // Add any other initialization logic here
         console.log('App initialized successfully');
-        setAppReady(true);
+        
+        // After splash screen finishes, go to terms or login
+        setTimeout(() => {
+          setAppReady(true);
+        }, 3000); // Minimum 3 seconds splash screen
       } catch (error) {
         console.error('Failed to initialize app:', error);
         Alert.alert('Initialization Error', error.toString());
@@ -219,18 +270,72 @@ const App = () => {
     prepareApp();
   }, []);
   
+  // Handle splash screen completion
+  const handleSplashComplete = () => {
+    if (termsAccepted && privacyAccepted) {
+      setScreen('login');
+    } else if (termsAccepted) {
+      setScreen('privacy');
+    } else {
+      setScreen('terms');
+    }
+  };
+  
+  // Terms and conditions handlers
+  const handleAcceptTerms = async () => {
+    try {
+      await AsyncStorage.setItem('termsAccepted', 'true');
+      setTermsAccepted(true);
+      setScreen('privacy');
+    } catch (error) {
+      console.error('Failed to save terms acceptance:', error);
+      Alert.alert('Error', 'Could not save your choice. Please try again.');
+    }
+  };
+  
+  const handleDeclineTerms = () => {
+    Alert.alert(
+      'Terms Declined',
+      'You must accept the Terms and Conditions to use Bullseye.',
+      [{ text: 'Review Again', onPress: () => setScreen('terms') }]
+    );
+  };
+  
+  // Privacy policy handlers
+  const handleAcceptPrivacy = async () => {
+    try {
+      await AsyncStorage.setItem('privacyAccepted', 'true');
+      setPrivacyAccepted(true);
+      setScreen('login');
+    } catch (error) {
+      console.error('Failed to save privacy acceptance:', error);
+      Alert.alert('Error', 'Could not save your choice. Please try again.');
+    }
+  };
+  
+  const handlePrivacyBack = () => {
+    setScreen('terms');
+  };
+  
   const handleLogin = () => setScreen('home');
   const handleLogout = () => setScreen('login');
+  const handleRegister = () => setScreen('register');
   const handleViewPost = () => setScreen('post');
   const handleBackToHome = () => setScreen('home');
+  const handleRegisterComplete = () => setScreen('login');
   
   if (!appReady) {
     return (
       <SafeAreaProvider>
         <SafeAreaView style={styles.container}>
-          <View style={styles.loadingContainer}>
-            <Text>Loading Bullseye...</Text>
-          </View>
+          {screen === 'splash' ? (
+            <BullseyeSplash onComplete={handleSplashComplete} />
+          ) : (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#FF4500" />
+              <Text style={styles.loadingText}>Loading Bullseye...</Text>
+            </View>
+          )}
         </SafeAreaView>
       </SafeAreaProvider>
     );
@@ -242,7 +347,11 @@ const App = () => {
         <SafeAreaView style={styles.container}>
           <StatusBar barStyle="dark-content" />
           <AuthProvider>
-            {screen === 'login' && <LoginScreen onLogin={handleLogin} />}
+            {screen === 'splash' && <BullseyeSplash onComplete={handleSplashComplete} />}
+            {screen === 'terms' && <TermsAndConditionsScreen onAccept={handleAcceptTerms} onDecline={handleDeclineTerms} />}
+            {screen === 'privacy' && <PrivacyPolicyScreen onAccept={handleAcceptPrivacy} onBack={handlePrivacyBack} />}
+            {screen === 'login' && <LoginScreen onLogin={handleLogin} onRegister={handleRegister} />}
+            {screen === 'register' && <RegisterScreen onRegisterComplete={handleRegisterComplete} />}
             {screen === 'home' && <HomeScreen onLogout={handleLogout} onViewPost={handleViewPost} />}
             {screen === 'post' && <PostDetailScreen onBack={handleBackToHome} />}
           </AuthProvider>
@@ -576,6 +685,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#ffffff',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#555',
+  },
+  linkText: {
+    color: '#FF4500',
+    textAlign: 'center',
+    marginTop: 16,
+    fontSize: 16,
   }
 });
 

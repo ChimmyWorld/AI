@@ -1,6 +1,6 @@
 {
   "cli": {
-    "version": ">= 3.12.0"
+    "version": ">= 5.4.0"
   },
   "build": {
     "development": {
@@ -10,14 +10,21 @@
     "preview": {
       "distribution": "internal"
     },
-    "production": {},
-    "apk": {
+    "production": {
+      "autoIncrement": true
+    },
+    "androidapk": {
       "android": {
         "buildType": "apk"
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "google-play-key.json",
+        "track": "production"
+      }
+    }
   }
 }

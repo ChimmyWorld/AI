@@ -5,6 +5,12 @@
     "slug": "bullseye-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
     "userInterfaceStyle": "light",
     "assetBundlePatterns": [
       "**/*"
@@ -12,26 +18,36 @@
     "plugins": [],
     "android": {
       "package": "com.bullseye.mobile",
+      "versionCode": 1,
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FF4500"
       },
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE"
-      ]
+      ],
+      "googleServicesFile": "./google-services.json",
+      "playStoreUrl": "https://play.google.com/store/apps/details?id=com.bullseye.mobile"
     },
     "ios": {
       "bundleIdentifier": "com.bullseye.mobile",
+      "buildNumber": "1.0.0",
       "supportsTablet": true
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
         "projectId": "d7dab3d0-6eff-43c6-bb8a-d6da742af13b"
       }
     },
-    "owner": "ymmijimmy"
+    "owner": "ymmijimmy",
+    "privacy": "unlisted",
+    "githubUrl": "https://github.com/ChimmyWorld/Bullseye",
+    "description": "A community forum app for discussing topics in Free, Q&A, and AI categories. Connect with others, share content, and earn karma through meaningful interactions.",
+    "primaryColor": "#FF4500"
   }
 }
