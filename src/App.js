@@ -6,6 +6,7 @@ import BullseyeSplash from './assets/splash';  // This import is correct
 import TermsAndConditionsScreen from './screens/TermsAndConditionsScreen';
 import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
 import RegisterScreen from './screens/RegisterScreen';
+import DebugScreen from './screens/DebugScreen';  // Import the DebugScreen
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Error boundary component
@@ -16,20 +17,41 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true };
+    return { hasError: true, error };
   }
 
   componentDidCatch(error, errorInfo) {
-    this.setState({ error, errorInfo });
-    console.error("App crashed with error:", error, errorInfo);
+    this.setState({ errorInfo });
     
-    // You can send this error to a logging service
-    if (Platform.OS !== 'web') {
-      Alert.alert(
-        "App Error",
-        `The app crashed with error: ${error.toString()}. Please report this issue.`,
-        [{ text: "OK" }]
-      );
+    // Log error to console for debugging
+    console.error("Error caught by ErrorBoundary:", error);
+    console.error("Component stack:", errorInfo?.componentStack);
+    
+    // If you have a way to send logs remotely, you could add it here
+    // For example: sendErrorToServer(error, errorInfo);
+    
+    // Store error in AsyncStorage for later viewing
+    this.storeError(error, errorInfo);
+  }
+  
+  storeError = async (error, errorInfo) => {
+    try {
+      const errorLog = {
+        timestamp: new Date().toISOString(),
+        error: error.toString(),
+        stack: error.stack,
+        componentStack: errorInfo?.componentStack,
+      };
+      
+      // Get existing logs if any
+      const existingLogsString = await AsyncStorage.getItem('errorLogs');
+      const existingLogs = existingLogsString ? JSON.parse(existingLogsString) : [];
+      
+      // Add new log and store back
+      const updatedLogs = [...existingLogs, errorLog];
+      await AsyncStorage.setItem('errorLogs', JSON.stringify(updatedLogs));
+    } catch (storageError) {
+      console.error('Failed to store error log:', storageError);
     }
   }
 
@@ -38,18 +60,30 @@ class ErrorBoundary extends React.Component {
       return (
         <View style={styles.errorContainer}>
           <Text style={styles.errorTitle}>Something went wrong</Text>
-          <Text style={styles.errorText}>
-            {this.state.error && this.state.error.toString()}
-          </Text>
+          <Text style={styles.errorMessage}>{this.state.error?.toString()}</Text>
+          <View style={styles.errorDetails}>
+            <Text style={styles.errorStack}>
+              {this.state.errorInfo?.componentStack || 'No component stack available'}
+            </Text>
+          </View>
           <TouchableOpacity 
             style={styles.button}
-            onPress={() => this.setState({ hasError: false })}
-          >
+            onPress={() => this.setState({ hasError: false, error: null, errorInfo: null })}>
             <Text style={styles.buttonText}>Try Again</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.button, { marginTop: 10 }]}
+            onPress={async () => {
+              const logs = await AsyncStorage.getItem('errorLogs');
+              console.log('Stored Error Logs:', logs);
+              Alert.alert('Error Logs', logs ? 'Check console for error logs' : 'No logs found');
+            }}>
+            <Text style={styles.buttonText}>Show Error Logs</Text>
           </TouchableOpacity>
         </View>
       );
     }
+
     return this.props.children;
   }
 }
@@ -207,25 +241,8 @@ const PostDetailScreen = ({ onBack }) => (
   </View>
 );
 
-const RegisterScreen = ({ onRegisterComplete }) => (
-  <View style={styles.screenContainer}>
-    <Text style={styles.screenTitle}>Register Screen</Text>
-    <View style={styles.formGroup}>
-      <Text style={styles.label}>Username</Text>
-      <View style={styles.input}><Text>demo@example.com</Text></View>
-    </View>
-    <View style={styles.formGroup}>
-      <Text style={styles.label}>Password</Text>
-      <View style={styles.input}><Text>********</Text></View>
-    </View>
-    <TouchableOpacity style={styles.button} onPress={onRegisterComplete}>
-      <Text style={styles.buttonText}>Register</Text>
-    </TouchableOpacity>
-  </View>
-);
-
 const App = () => {
-  const [screen, setScreen] = useState('splash'); // 'splash', 'terms', 'privacy', 'login', 'register', 'home', 'post'
+  const [screen, setScreen] = useState('splash'); // 'splash', 'terms', 'privacy', 'login', 'register', 'home', 'post', 'debug'
   const [appReady, setAppReady] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
@@ -324,6 +341,33 @@ const App = () => {
   const handleBackToHome = () => setScreen('home');
   const handleRegisterComplete = () => setScreen('login');
   
+  const handleOpenDebugScreen = () => {
+    setScreen('debug');
+  };
+  
+  const renderScreen = () => {
+    switch (screen) {
+      case 'splash':
+        return <BullseyeSplash onComplete={handleSplashComplete} />;
+      case 'terms':
+        return <TermsAndConditionsScreen onAccept={handleAcceptTerms} />;
+      case 'privacy':
+        return <PrivacyPolicyScreen onAccept={handleAcceptPrivacy} />;
+      case 'login':
+        return <LoginScreen onLogin={handleLogin} onRegister={() => setScreen('register')} />;
+      case 'register':
+        return <RegisterScreen onRegisterComplete={() => setScreen('login')} />;
+      case 'home':
+        return <HomeScreen onLogout={handleLogout} onViewPost={handleViewPost} />;
+      case 'post':
+        return <PostDetailScreen onBack={() => setScreen('home')} />;
+      case 'debug':
+        return <DebugScreen navigation={{ goBack: () => setScreen('login') }} />;
+      default:
+        return <LoginScreen onLogin={handleLogin} onRegister={() => setScreen('register')} />;
+    }
+  };
+  
   if (!appReady) {
     return (
       <SafeAreaProvider>
@@ -342,22 +386,26 @@ const App = () => {
   }
   
   return (
-    <ErrorBoundary>
-      <SafeAreaProvider>
-        <SafeAreaView style={styles.container}>
-          <StatusBar barStyle="dark-content" />
-          <AuthProvider>
-            {screen === 'splash' && <BullseyeSplash onComplete={handleSplashComplete} />}
-            {screen === 'terms' && <TermsAndConditionsScreen onAccept={handleAcceptTerms} onDecline={handleDeclineTerms} />}
-            {screen === 'privacy' && <PrivacyPolicyScreen onAccept={handleAcceptPrivacy} onBack={handlePrivacyBack} />}
-            {screen === 'login' && <LoginScreen onLogin={handleLogin} onRegister={handleRegister} />}
-            {screen === 'register' && <RegisterScreen onRegisterComplete={handleRegisterComplete} />}
-            {screen === 'home' && <HomeScreen onLogout={handleLogout} onViewPost={handleViewPost} />}
-            {screen === 'post' && <PostDetailScreen onBack={handleBackToHome} />}
-          </AuthProvider>
-        </SafeAreaView>
-      </SafeAreaProvider>
-    </ErrorBoundary>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <ErrorBoundary>
+          <SafeAreaView style={styles.container}>
+            <StatusBar barStyle="dark-content" />
+            {renderScreen()}
+            
+            {/* Debug button - only visible in non-production builds */}
+            {__DEV__ && screen !== 'debug' && (
+              <TouchableOpacity 
+                style={styles.debugButton} 
+                onPress={handleOpenDebugScreen}
+              >
+                <Text style={styles.debugButtonText}>Debug</Text>
+              </TouchableOpacity>
+            )}
+          </SafeAreaView>
+        </ErrorBoundary>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 };
 
@@ -676,10 +724,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: '#FF4500',
   },
-  errorText: {
+  errorMessage: {
     fontSize: 14,
     marginBottom: 20,
     textAlign: 'center',
+  },
+  errorDetails: {
+    padding: 10,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 5,
+    marginBottom: 20,
+  },
+  errorStack: {
+    fontSize: 12,
+    color: '#666',
   },
   loadingContainer: {
     flex: 1,
@@ -697,7 +755,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
     fontSize: 16,
-  }
+  },
+  debugButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    zIndex: 999,
+  },
+  debugButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
 });
 
 export default App;

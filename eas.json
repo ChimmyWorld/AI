@@ -13,18 +13,14 @@
     "production": {
       "autoIncrement": true
     },
-    "apk": {
+    "androidapk": {
       "android": {
         "buildType": "apk"
-      }
+      },
+      "distribution": "internal"
     }
   },
   "submit": {
-    "production": {
-      "android": {
-        "serviceAccountKeyPath": "google-play-key.json",
-        "track": "production"
-      }
-    }
+    "production": {}
   }
 }
