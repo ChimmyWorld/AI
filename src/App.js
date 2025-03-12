@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';,
+import ErrorBoundary from './utils/GlobalErrorHandler'; { useState, useEffect } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet, Text, View, Platform, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './hooks/useAuth';
@@ -63,8 +64,8 @@ const HomeScreen = ({ onLogout, onViewPost, onDebug }) => {
               <Text style={styles.postTitle}>{post.title}</Text>
               <Text style={styles.postAuthor}>Posted by {post.author}</Text>
               <View style={styles.postStats}>
-                <Text style={styles.postStatItem}>❤️ {post.likes}</Text>
-                <Text style={styles.postStatItem}>💬 {post.comments}</Text>
+                <Text style={styles.postStatItem}>?�️ {post.likes}</Text>
+                <Text style={styles.postStatItem}>?�� {post.comments}</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -82,14 +83,14 @@ const PostDetailScreen = ({ onBack }) => (
   <View style={styles.screenContainer}>
     <View style={styles.header}>
       <TouchableOpacity onPress={onBack}>
-        <Text style={styles.backButton}>← Back</Text>
+        <Text style={styles.backButton}>??Back</Text>
       </TouchableOpacity>
       <Text style={styles.headerTitle}>Post Detail</Text>
     </View>
     
     <View style={styles.postDetail}>
       <Text style={styles.postDetailTitle}>Welcome to Bullseye!</Text>
-      <Text style={styles.postDetailAuthor}>Posted by Admin • 2 days ago</Text>
+      <Text style={styles.postDetailAuthor}>Posted by Admin ??2 days ago</Text>
       
       <Text style={styles.postDetailContent}>
         Welcome to the Bullseye community forum! This is a place where you can discuss topics,
@@ -102,10 +103,10 @@ const PostDetailScreen = ({ onBack }) => (
       
       <View style={styles.postActions}>
         <TouchableOpacity style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>❤️ Like</Text>
+          <Text style={styles.actionButtonText}>?�️ Like</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>💬 Comment</Text>
+          <Text style={styles.actionButtonText}>?�� Comment</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton}>
           <Text style={styles.actionButtonText}>⤴️ Share</Text>
@@ -573,3 +574,4 @@ const styles = StyleSheet.create({
 });
 
 export default App;
+

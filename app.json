@@ -3,7 +3,9 @@
     "name": "Bullseye",
     "slug": "bullseye-mobile",
     "version": "1.0.0",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "android": {
       "package": "com.bullseye.mobile",
       "versionCode": 1,
@@ -14,6 +16,11 @@
       "permissions": [
         "android.permission.INTERNET"
       ]
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d7dab3d0-6eff-43c6-bb8a-d6da742af13b"
+      }
     }
   }
 }
