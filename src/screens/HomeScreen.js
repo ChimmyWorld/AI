@@ -8,13 +8,14 @@ import {
   ActivityIndicator,
   RefreshControl
 } from 'react-native';
-import { getPosts } from '../api';
-import PostCard from '../components/PostCard';
+import PostService from '../services/posts';
+import Post from '../components/Post';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const categories = [
   { id: 'all', name: 'All' },
   { id: 'free', name: 'Free' },
-  { id: 'qna', name: 'Q&A' },
+  { id: 'qa', name: 'Q&A' },
   { id: 'ai', name: 'AI' }
 ];
 
@@ -24,33 +25,69 @@ const HomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const fetchPosts = async (category = selectedCategory) => {
+  const fetchPosts = async (category = selectedCategory, reset = true) => {
     try {
       setError(null);
-      setLoading(true);
+      if (reset) {
+        setLoading(true);
+        setPage(1);
+      }
       
-      // Get category filter (empty string for 'all')
-      const categoryFilter = category === 'all' ? '' : category;
-      const data = await getPosts(categoryFilter);
+      // Get posts based on category
+      let data;
+      if (category === 'all') {
+        data = await PostService.getPosts({
+          page: reset ? 1 : page, 
+          limit: 10,
+          sortBy: 'newest'
+        });
+      } else {
+        data = await PostService.getPostsByCategory(category, {
+          page: reset ? 1 : page,
+          limit: 10
+        });
+      }
       
-      setPosts(data);
+      if (reset) {
+        setPosts(data.posts || []);
+      } else {
+        setPosts(prev => [...prev, ...(data.posts || [])]);
+      }
+      
+      // Check if there are more posts to load
+      setHasMore((data.posts?.length || 0) === 10);
+      
+      if (!reset) {
+        setPage(prev => prev + 1);
+      }
     } catch (err) {
       console.error('Error fetching posts:', err);
       setError('Failed to load posts. Please try again.');
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    fetchPosts();
+    fetchPosts(selectedCategory, true);
   }, [selectedCategory]);
 
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchPosts();
+    fetchPosts(selectedCategory, true);
+  };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      setLoadingMore(true);
+      fetchPosts(selectedCategory, false);
+    }
   };
 
   const handleCategorySelect = (category) => {
@@ -59,6 +96,16 @@ const HomeScreen = ({ navigation }) => {
 
   const handlePostPress = (postId) => {
     navigation.navigate('PostDetail', { postId });
+  };
+
+  const handlePostVote = async (postId, voteType) => {
+    try {
+      await PostService.votePost(postId, voteType);
+      // Refresh post list to show updated votes
+      fetchPosts(selectedCategory, true);
+    } catch (err) {
+      console.error('Error voting on post:', err);
+    }
   };
 
   const renderCategoryTabs = () => (
@@ -90,20 +137,29 @@ const HomeScreen = ({ navigation }) => {
     </View>
   );
 
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color="#FF4500" />
+        <Text style={styles.footerText}>Loading more posts...</Text>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       {renderCategoryTabs()}
       
       {loading && !refreshing ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#FF4500" />
-        </View>
+        <LoadingSpinner text="Loading posts..." />
       ) : error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity 
             style={styles.retryButton}
-            onPress={() => fetchPosts()}
+            onPress={() => fetchPosts(selectedCategory, true)}
           >
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
@@ -113,11 +169,13 @@ const HomeScreen = ({ navigation }) => {
           data={posts}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
-            <PostCard 
+            <Post 
               post={item} 
-              onPress={() => handlePostPress(item._id)} 
+              onPress={handlePostPress}
+              onVote={handlePostVote}
             />
           )}
+          contentContainerStyle={styles.postList}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -125,17 +183,30 @@ const HomeScreen = ({ navigation }) => {
               colors={['#FF4500']}
             />
           }
-          contentContainerStyle={posts.length === 0 ? styles.emptyListContent : styles.listContent}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No posts found</Text>
-              <Text style={styles.emptySubText}>
-                Be the first to create a post in this category!
-              </Text>
+              <Text style={styles.emptySubText}>Be the first to create a post!</Text>
+              <TouchableOpacity 
+                style={styles.createPostButton}
+                onPress={() => navigation.navigate('CreatePost')}
+              >
+                <Text style={styles.createPostButtonText}>Create Post</Text>
+              </TouchableOpacity>
             </View>
           }
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
         />
       )}
+      
+      <TouchableOpacity 
+        style={styles.fab}
+        onPress={() => navigation.navigate('CreatePost')}
+      >
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -148,58 +219,35 @@ const styles = StyleSheet.create({
   tabContainer: {
     backgroundColor: 'white',
     paddingVertical: 8,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+    marginBottom: 8,
   },
   tabItem: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginHorizontal: 4,
     borderRadius: 20,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#F5F5F5',
   },
   selectedTab: {
     backgroundColor: '#FF4500',
   },
   tabText: {
+    fontWeight: 'bold',
     color: '#1A1A1B',
-    fontWeight: '500',
   },
   selectedTabText: {
     color: 'white',
-    fontWeight: 'bold',
+  },
+  postList: {
+    padding: 8,
   },
   loaderContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  listContent: {
-    paddingBottom: 16,
-  },
-  emptyListContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 40,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  emptySubText: {
-    fontSize: 14,
-    color: '#7C7C7C',
-    textAlign: 'center',
   },
   errorContainer: {
     flex: 1,
@@ -209,7 +257,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#E53935',
+    color: '#FF4500',
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -217,11 +265,70 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF4500',
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 5,
   },
   retryButtonText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    marginTop: 50,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: '#787C7E',
+    marginBottom: 20,
+  },
+  createPostButton: {
+    backgroundColor: '#FF4500',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 5,
+  },
+  createPostButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FF4500',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  fabText: {
+    fontSize: 28,
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  footerLoader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  footerText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#666',
   },
 });
 

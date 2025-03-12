@@ -1,7 +1,8 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { loginUser, registerUser, getCurrentUser } from '../api';
 import { Alert } from 'react-native';
+import AuthService from '../services/auth';
+import UserService from '../services/users';
 
 // Create Auth Context
 const AuthContext = createContext(null);
@@ -16,14 +17,18 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const token = await AsyncStorage.getItem('token');
-        const userData = await AsyncStorage.getItem('user');
+        // Check if token exists
+        const isAuth = await AuthService.isAuthenticated();
         
-        if (token && userData) {
-          setUser(JSON.parse(userData));
+        if (isAuth) {
+          // Get current user data from API
+          const userData = await AuthService.getCurrentUser();
+          setUser(userData);
         }
       } catch (err) {
         console.error('Failed to load user data:', err);
+        // If token is invalid, clear it
+        await AuthService.logout();
       } finally {
         setLoading(false);
       }
@@ -36,19 +41,16 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       setError(null);
-      const { token, user } = await loginUser(credentials);
-      
-      // Store token and user data
-      await AsyncStorage.setItem('token', token);
-      await AsyncStorage.setItem('user', JSON.stringify(user));
+      const response = await AuthService.login(credentials);
       
       // Set user in state
-      setUser(user);
+      setUser(response.user);
       
       return true;
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to login');
-      Alert.alert('Login Failed', err.response?.data?.message || 'Failed to login');
+      const errorMessage = err.message || 'Failed to login';
+      setError(errorMessage);
+      Alert.alert('Login Failed', errorMessage);
       return false;
     }
   };
@@ -57,19 +59,21 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setError(null);
-      const { token, user } = await registerUser(userData);
+      const response = await AuthService.register(userData);
       
-      // Store token and user data
-      await AsyncStorage.setItem('token', token);
-      await AsyncStorage.setItem('user', JSON.stringify(user));
-      
-      // Set user in state
-      setUser(user);
+      // Login after registration
+      if (response) {
+        return await login({
+          email: userData.email,
+          password: userData.password
+        });
+      }
       
       return true;
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to register');
-      Alert.alert('Registration Failed', err.response?.data?.message || 'Failed to register');
+      const errorMessage = err.message || 'Failed to register';
+      setError(errorMessage);
+      Alert.alert('Registration Failed', errorMessage);
       return false;
     }
   };
@@ -77,9 +81,7 @@ export const AuthProvider = ({ children }) => {
   // Logout function
   const logout = async () => {
     try {
-      // Remove token and user data
-      await AsyncStorage.removeItem('token');
-      await AsyncStorage.removeItem('user');
+      await AuthService.logout();
       
       // Clear user from state
       setUser(null);
@@ -87,6 +89,24 @@ export const AuthProvider = ({ children }) => {
       return true;
     } catch (err) {
       console.error('Failed to logout:', err);
+      return false;
+    }
+  };
+
+  // Update user profile
+  const updateProfile = async (profileData) => {
+    try {
+      setError(null);
+      const updatedUser = await UserService.updateProfile(profileData);
+      
+      // Update user in state
+      setUser(prev => ({ ...prev, ...updatedUser }));
+      
+      return true;
+    } catch (err) {
+      const errorMessage = err.message || 'Failed to update profile';
+      setError(errorMessage);
+      Alert.alert('Update Failed', errorMessage);
       return false;
     }
   };
@@ -99,12 +119,13 @@ export const AuthProvider = ({ children }) => {
       value={{ 
         user, 
         login, 
-        logout, 
         register, 
-        isAuthenticated, 
-        loading, 
+        logout, 
+        updateProfile,
+        isAuthenticated,
+        loading,
         error 
-      }}
+      }} 
     >
       {children}
     </AuthContext.Provider>
@@ -114,7 +135,7 @@ export const AuthProvider = ({ children }) => {
 // Hook for components to get auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === null) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
