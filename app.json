@@ -1,0 +1,37 @@
+{
+  "name": "BullseyeMobile",
+  "expo": {
+    "name": "Bullseye",
+    "slug": "bullseye-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "plugins": [],
+    "android": {
+      "package": "com.bullseye.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#FF4500"
+      },
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.bullseye.mobile",
+      "supportsTablet": true
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d7dab3d0-6eff-43c6-bb8a-d6da742af13b"
+      }
+    },
+    "owner": "ymmijimmy"
+  }
+}
