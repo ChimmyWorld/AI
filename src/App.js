@@ -1,17 +1,13 @@
-/**
- * This is a fixed version of App.js - copy the contents to replace your original App.js
- */
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet, Text, View, Platform, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthProvider } from './src/hooks/useAuth';
-import BullseyeSplash from './src/assets/splash';
-import TermsAndConditionsScreen from './src/screens/TermsAndConditionsScreen';
-import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
-import RegisterScreen from './src/screens/RegisterScreen';
-import DebugScreen from './src/screens/DebugScreen';
+import { AuthProvider } from './hooks/useAuth';
+import BullseyeSplash from './assets/splash';
+import TermsAndConditionsScreen from './screens/TermsAndConditionsScreen';
+import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
+import RegisterScreen from './screens/RegisterScreen';
+import DebugScreen from './screens/DebugScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ErrorBoundary from './src/components/ErrorBoundary';  // Using our new ErrorBoundary component
 
 // Simple MVP screens
 const LoginScreen = ({ onLogin, onRegister }) => (
@@ -124,6 +120,73 @@ const PostDetailScreen = ({ onBack }) => (
   </View>
 );
 
+// Error Boundary component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    this.setState({ errorInfo });
+    
+    // Log error to console for debugging
+    console.error("Error caught by ErrorBoundary:", error);
+    console.error("Component stack:", errorInfo?.componentStack);
+    
+    // Store error in AsyncStorage for later viewing
+    this.storeError(error, errorInfo);
+  }
+  
+  storeError = async (error, errorInfo) => {
+    try {
+      const errorLog = {
+        timestamp: new Date().toISOString(),
+        error: error?.toString() || 'Unknown error',
+        stack: error?.stack || 'No stack trace',
+        componentStack: errorInfo?.componentStack || 'No component stack',
+      };
+      
+      // Get existing logs if any
+      const existingLogsString = await AsyncStorage.getItem('errorLogs');
+      const existingLogs = existingLogsString ? JSON.parse(existingLogsString) : [];
+      
+      // Add new log and store back (limit to 50 entries)
+      const updatedLogs = [errorLog, ...existingLogs].slice(0, 50);
+      await AsyncStorage.setItem('errorLogs', JSON.stringify(updatedLogs));
+    } catch (storageError) {
+      console.error('Failed to store error log:', storageError);
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorTitle}>Something went wrong</Text>
+          <Text style={styles.errorMessage}>{this.state.error?.toString() || 'Unknown error'}</Text>
+          <View style={styles.errorDetails}>
+            <Text style={styles.errorStack}>
+              {this.state.errorInfo?.componentStack || 'No component stack available'}
+            </Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.button}
+            onPress={() => this.setState({ hasError: false, error: null, errorInfo: null })}>
+            <Text style={styles.buttonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const App = () => {
   const [screen, setScreen] = useState('splash'); // 'splash', 'terms', 'privacy', 'login', 'register', 'home', 'post', 'debug'
   const [appReady, setAppReady] = useState(false);
@@ -170,14 +233,20 @@ const App = () => {
     prepareApp();
   }, []);
   
-  // Handle splash screen completion
+  // Handle splash screen completion - FIX: Wrap this in try/catch to prevent crashes
   const handleSplashComplete = () => {
-    if (termsAccepted && privacyAccepted) {
+    try {
+      if (termsAccepted && privacyAccepted) {
+        setScreen('login');
+      } else if (termsAccepted) {
+        setScreen('privacy');
+      } else {
+        setScreen('terms');
+      }
+    } catch (error) {
+      console.error('Error in handleSplashComplete:', error);
+      // Fallback to login screen if there's an error
       setScreen('login');
-    } else if (termsAccepted) {
-      setScreen('privacy');
-    } else {
-      setScreen('terms');
     }
   };
   
@@ -228,25 +297,24 @@ const App = () => {
     setScreen('debug');
   };
   
-  // Safely wrap this function to prevent the "undefined is not a function" error
-  const safeHandleSplashComplete = () => {
-    try {
-      if (typeof handleSplashComplete === 'function') {
-        handleSplashComplete();
-      } else {
-        console.warn('handleSplashComplete is not a function');
-        setScreen('login'); // Fallback behavior
-      }
-    } catch (error) {
-      console.error('Error in handleSplashComplete:', error);
-      setScreen('login'); // Fallback behavior
-    }
-  };
-  
+  // FIX: Repair the splash screen handler to prevent the undefined function error
   const renderScreen = () => {
     switch (screen) {
       case 'splash':
-        return <BullseyeSplash onComplete={safeHandleSplashComplete} />;
+        // FIX: Use a safecall wrapper for handleSplashComplete
+        return <BullseyeSplash onComplete={() => {
+          try {
+            if (typeof handleSplashComplete === 'function') {
+              handleSplashComplete();
+            } else {
+              console.warn('handleSplashComplete is not defined');
+              setScreen('login'); // Fallback
+            }
+          } catch (error) {
+            console.error('Error in splash completion:', error);
+            setScreen('login'); // Fallback
+          }
+        }} />;
       case 'terms':
         return (
           <TermsAndConditionsScreen 
