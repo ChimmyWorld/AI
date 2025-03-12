@@ -1,0 +1,19 @@
+﻿**********************
+Windows PowerShell 기록 시작
+시작 시간: 20250312153735
+사용자 이름: DESKTOP-TNPG7RS\WW
+RunAs 사용자: DESKTOP-TNPG7RS\WW
+구성 이름: 
+Machine: DESKTOP-TNPG7RS (Microsoft Windows NT 10.0.19045.0)
+호스트 응용 프로그램: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -noexit -command try { . "c:\Users\WW\AppData\Local\Programs\Windsurf\resources\app\out\vs\workbench\contrib\terminal\common\scripts\shellIntegration.ps1" } catch {}
+프로세스 ID: 1844
+PSVersion: 5.1.19041.5486
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.5486
+BuildVersion: 10.0.19041.5486
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+기록이 시작되었습니다. 출력 파일은 .\logs\expo_log_20250312_153735.txt입니다.

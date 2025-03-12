@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
+import { safeCall } from '../utils/errorUtils';
 
 const BullseyeSplash = ({ onComplete }) => {
   const opacityAnim = React.useRef(new Animated.Value(0)).current;
@@ -23,11 +24,12 @@ const BullseyeSplash = ({ onComplete }) => {
       ]),
       Animated.delay(1000),
     ]).start(() => {
+      // Safely call onComplete - this prevents the "undefined is not a function" error
       if (onComplete) {
-        onComplete();
+        safeCall(onComplete, []);
       }
     });
-  }, []);
+  }, [onComplete]); // Add onComplete to dependency array
 
   return (
     <View style={styles.container}>

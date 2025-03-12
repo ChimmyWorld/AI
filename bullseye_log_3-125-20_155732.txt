@@ -1,0 +1,103 @@
+--------- beginning of main
+03-12 15:57:33.794 20802 20802 E bullseye.mobile: Not starting debugger since process cannot load the jdwp agent.
+03-12 15:57:33.844  1835  9095 E VpnManagerService: Exception occured while trying to get the getProxyInfoForUid for knoxvpn uid 10714
+03-12 15:57:33.844  4306  4306 E pageboostd: Received HALT command code 2
+03-12 15:57:33.947 20802 20802 E SoLoader: couldn't find DSO to load: libjscexecutor.so
+03-12 15:57:33.947 20802 20802 E SoLoader: 	SoSource 0: com.facebook.soloader.ApkSoSource[root = /data/data/com.bullseye.mobile/lib-main flags = 1]
+03-12 15:57:33.947 20802 20802 E SoLoader: 	SoSource 1: com.facebook.soloader.DirectorySoSource[root = /data/app/~~gt9r4w8dhK4oI-Alt-NcGA==/com.bullseye.mobile-tqeA8tu5D3pd1MgFwQ1mfg==/lib/arm64 flags = 0]
+03-12 15:57:33.947 20802 20802 E SoLoader: 	SoSource 2: com.facebook.soloader.DirectorySoSource[root = /system/lib64 flags = 2]
+03-12 15:57:33.947 20802 20802 E SoLoader: 	SoSource 3: com.facebook.soloader.DirectorySoSource[root = /vendor/lib64 flags = 2]
+03-12 15:57:33.947 20802 20802 E SoLoader: 	Native lib dir: /data/app/~~gt9r4w8dhK4oI-Alt-NcGA==/com.bullseye.mobile-tqeA8tu5D3pd1MgFwQ1mfg==/lib/arm64
+03-12 15:57:33.947 20802 20802 E SoLoader:  result: 0
+03-12 15:57:33.955  4306  4306 E pageboostd: Received HALT command code 2
+--------- beginning of crash
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: FATAL EXCEPTION: mqt_js
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: Process: com.bullseye.mobile, PID: 20802
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: java.lang.RuntimeException: com.facebook.react.devsupport.JSException: undefined is not a function
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	at com.facebook.react.bridge.DefaultJSExceptionHandler.handleException(DefaultJSExceptionHandler.java:20)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	at com.facebook.react.devsupport.DisabledDevSupportManager.handleException(DisabledDevSupportManager.java:195)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	at com.facebook.react.bridge.CatalystInstanceImpl.onNativeException(CatalystInstanceImpl.java:620)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	at com.facebook.react.bridge.CatalystInstanceImpl.-$$Nest$monNativeException(Unknown Source:0)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	at com.facebook.react.bridge.CatalystInstanceImpl$NativeExceptionHandler.handleException(CatalystInstanceImpl.java:638)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	at com.facebook.react.bridge.queue.MessageQueueThreadHandler.dispatchMessage(MessageQueueThreadHandler.java:29)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	at android.os.Looper.loopOnce(Looper.java:230)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:319)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	at com.facebook.react.bridge.queue.MessageQueueThreadImpl$4.run(MessageQueueThreadImpl.java:228)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	at java.lang.Thread.run(Thread.java:1012)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: Caused by: com.facebook.react.devsupport.JSException: undefined is not a function
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	at com.facebook.jni.NativeRunnable.run(Native Method)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	at android.os.Handler.handleCallback(Handler.java:958)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:99)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	at com.facebook.react.bridge.queue.MessageQueueThreadHandler.dispatchMessage(MessageQueueThreadHandler.java:27)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	... 4 more
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: Caused by: com.facebook.jni.CppException: undefined is not a function
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: TypeError: undefined is not a function
+03-12 15:57:33.972 20802 20839 E AndroidRuntime:     at anonymous (address at index.android.bundle:1:8286)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime:     at loadModuleImplementation (address at index.android.bundle:1:1825)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime:     at guardedLoadModule (address at index.android.bundle:1:1391)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime:     at metroRequire (address at index.android.bundle:1:1027)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime:     at anonymous (address at index.android.bundle:1:8164)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime:     at loadModuleImplementation (address at index.android.bundle:1:1825)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime:     at guardedLoadModule (address at index.android.bundle:1:1350)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime:     at metroRequire (address at index.android.bundle:1:1027)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime:     at global (address at index.android.bundle:1:592)
+03-12 15:57:33.972 20802 20839 E AndroidRuntime: 	... 8 more
+03-12 15:57:34.091 16059 16059 E WindowManager: android.view.WindowLeaked: Activity com.android.packageinstaller.InstallSuccess has leaked window DecorView@5a41286[InstallSuccess] that was originally added here
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.view.ViewRootImpl.<init>(ViewRootImpl.java:1302)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.view.ViewRootImpl.<init>(ViewRootImpl.java:1279)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.view.WindowManagerGlobal.addView(WindowManagerGlobal.java:566)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.view.WindowManagerImpl.addView(WindowManagerImpl.java:150)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.app.Dialog.show(Dialog.java:506)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at com.android.packageinstaller.InstallSuccess.bindUi(InstallSuccess.java:109)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at com.android.packageinstaller.InstallSuccess.onCreate(InstallSuccess.java:75)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.app.Activity.performCreate(Activity.java:9001)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.app.Activity.performCreate(Activity.java:8970)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.app.Instrumentation.callActivityOnCreate(Instrumentation.java:1456)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4154)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4330)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:103)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.app.servertransaction.TransactionExecutor.executeCallbacks(TransactionExecutor.java:139)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:96)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2693)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.os.Looper.loopOnce(Looper.java:230)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.os.Looper.loop(Looper.java:319)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at android.app.ActivityThread.main(ActivityThread.java:9063)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at java.lang.reflect.Method.invoke(Native Method)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:588)
+03-12 15:57:34.091 16059 16059 E WindowManager: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1103)
+03-12 15:57:34.092 16059 16059 E WindowManager: android.view.WindowLeaked: Activity com.android.packageinstaller.InstallSuccess has leaked window DecorView@249aa22[InstallSuccess] that was originally added here
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.view.ViewRootImpl.<init>(ViewRootImpl.java:1302)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.view.ViewRootImpl.<init>(ViewRootImpl.java:1279)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.view.WindowManagerGlobal.addView(WindowManagerGlobal.java:566)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.view.WindowManagerImpl.addView(WindowManagerImpl.java:150)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.app.Dialog.show(Dialog.java:506)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at com.android.packageinstaller.InstallSuccess.bindUi(InstallSuccess.java:109)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at com.android.packageinstaller.InstallSuccess.onResume(InstallSuccess.java:82)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.app.Instrumentation.callActivityOnResume(Instrumentation.java:1603)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.app.Activity.performResume(Activity.java:9172)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.app.ActivityThread.performResumeActivity(ActivityThread.java:5484)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.app.ActivityThread.handleResumeActivity(ActivityThread.java:5593)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.app.servertransaction.ResumeActivityItem.execute(ResumeActivityItem.java:57)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.app.servertransaction.ActivityTransactionItem.execute(ActivityTransactionItem.java:45)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.app.servertransaction.TransactionExecutor.executeLifecycleState(TransactionExecutor.java:180)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:98)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2693)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.os.Looper.loopOnce(Looper.java:230)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.os.Looper.loop(Looper.java:319)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at android.app.ActivityThread.main(ActivityThread.java:9063)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at java.lang.reflect.Method.invoke(Native Method)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:588)
+03-12 15:57:34.092 16059 16059 E WindowManager: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1103)
+03-12 15:57:34.384  3947  3947 E ThemeUtils: View class com.honeyspace.ui.common.iconview.IconViewImpl is an AppCompat widget that can only be used with a Theme.AppCompat theme (or descendant).
+--------- beginning of system
+03-12 15:57:34.422  1835  1868 E WindowManager: win=Window{d7462be u0 com.google.android.packageinstaller/com.android.packageinstaller.DeleteStagedFileOnResult EXITING} destroySurfaces: appStopped=false cleanupOnResume=false win.mWindowRemovalAllowed=true win.mRemoveOnExit=true win.mViewVisibility=8 caller=com.android.server.wm.ActivityRecord.destroySurfaces:7033 com.android.server.wm.ActivityRecord.destroySurfaces:7014 com.android.server.wm.WindowState.onExitAnimationDone:5779 com.android.server.wm.TransitionController.finishTransition:1162 com.android.server.wm.WindowOrganizerController.finishTransition:456 android.window.IWindowOrganizerController$Stub.onTransact:286 com.android.server.wm.WindowOrganizerController.onTransact:219 
+03-12 15:57:34.427  1835  1989 E WindowManager: win=Window{cd05959 u0 com.google.android.packageinstaller/com.android.packageinstaller.InstallSuccess EXITING} destroySurfaces: appStopped=false cleanupOnResume=false win.mWindowRemovalAllowed=true win.mRemoveOnExit=true win.mViewVisibility=8 caller=com.android.server.wm.WindowState.onExitAnimationDone:5781 com.android.server.wm.WindowStateAnimator.onAnimationFinished:214 com.android.server.wm.WindowState.onAnimationFinished:6011 com.android.server.wm.WindowContainer$$ExternalSyntheticLambda4.onAnimationFinished:0 com.android.server.wm.SurfaceAnimator.lambda$getFinishedCallback$0:140 com.android.server.wm.SurfaceAnimator.$r8$lambda$eYT7rjaBOE8bCIRq043wVzQ_RTM:0 com.android.server.wm.SurfaceAnimator$$ExternalSyntheticLambda1.run:0 
+03-12 15:57:34.432  1835  1989 E WindowManager: win=Window{d66f0da u0 com.google.android.packageinstaller/com.android.packageinstaller.InstallSuccess EXITING} destroySurfaces: appStopped=false cleanupOnResume=false win.mWindowRemovalAllowed=true win.mRemoveOnExit=true win.mViewVisibility=8 caller=com.android.server.wm.WindowState.onExitAnimationDone:5781 com.android.server.wm.WindowStateAnimator.onAnimationFinished:214 com.android.server.wm.WindowState.onAnimationFinished:6011 com.android.server.wm.WindowContainer$$ExternalSyntheticLambda4.onAnimationFinished:0 com.android.server.wm.SurfaceAnimator.lambda$getFinishedCallback$0:140 com.android.server.wm.SurfaceAnimator.$r8$lambda$eYT7rjaBOE8bCIRq043wVzQ_RTM:0 com.android.server.wm.SurfaceAnimator$$ExternalSyntheticLambda1.run:0 
+03-12 15:57:34.442  1667  1667 E BpTransactionCompletedListener: Failed to transact (-32)
+03-12 15:57:35.830  1566  1611 E ANDR-PERF-UTIL: Failed to update node /proc/20802/sched_boost with value 0
+03-12 15:57:35.830  1566  1611 E ANDR-PERF-OPTSHANDLER: can't reset task 20802
+03-12 15:57:35.830  1566  1611 E ANDR-PERF-RESOURCEQS: Failed to reset optimization [3, 32]
+03-12 15:57:36.966  1835  3461 E Pageboost: ioinfo read failed
