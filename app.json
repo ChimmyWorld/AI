@@ -14,19 +14,6 @@
       "permissions": [
         "android.permission.INTERNET"
       ]
-    },
-    "plugins": [
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "extraMavenRepos": [
-              "../../node_modules/jsc-android/dist"
-            ],
-            "extraProguardRules": "-keep class com.facebook.jni.** { *; }"
-          }
-        }
-      ]
-    ]
+    }
   }
 }
