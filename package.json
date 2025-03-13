@@ -20,7 +20,7 @@
     "test:bullseye": "cd packages/bullseye-mobile && npm test",
     "android:bullseye": "cd packages/bullseye-mobile && npm run android",
     "ios:bullseye": "cd packages/bullseye-mobile && npm run ios",
-    "expo:build:android": "cd packages/bullseye-mobile && expo build:android",
+    "expo:build:android": "cd packages/bullseye-mobile; npx eas build -p android --profile androidapk",
     "expo:build:ios": "cd packages/bullseye-mobile && expo build:ios"
   },
   "keywords": [
