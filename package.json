@@ -7,6 +7,7 @@
     "packages/*"
   ],
   "scripts": {
+    "start": "cd packages/web && npm start",
     "start:web": "cd packages/web && npm start",
     "start:mobile": "cd packages/mobile && npm start",
     "start:bullseye": "cd packages/bullseye-mobile && npm start",
@@ -20,7 +21,8 @@
     "android:bullseye": "cd packages/bullseye-mobile && npm run android",
     "ios:bullseye": "cd packages/bullseye-mobile && npm run ios",
     "expo:build:android": "cd packages/bullseye-mobile && expo build:android",
-    "expo:build:ios": "cd packages/bullseye-mobile && expo build:ios"
+    "expo:build:ios": "cd packages/bullseye-mobile && expo build:ios",
+    "postinstall": "cd packages/web && npm install"
   },
   "keywords": [
     "forum",
