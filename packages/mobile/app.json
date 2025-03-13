@@ -3,25 +3,37 @@
     "name": "Bullseye",
     "slug": "bullseye-mobile",
     "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splashscreen_logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
-    "splash": {
-      "image": "./assets/splashscreen_logo.png",
-      "backgroundColor": "#FF4500",
-      "resizeMode": "contain"
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bullseye.mobile"
     },
     "android": {
-      "package": "com.bullseye.mobile",
-      "versionCode": 1,
-      "compileSdkVersion": 33,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
+      "package": "com.bullseye.mobile",
+      "versionCode": 1,
+      "compileSdkVersion": 33,
       "permissions": [
         "android.permission.INTERNET"
       ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
