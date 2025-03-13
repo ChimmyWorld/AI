@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { constants } from '@community-forum/shared';
 
 // Update this with your actual backend URL
-const API_URL = 'https://chimmyworld-ai.onrender.com'; 
+const API_URL = 'https://ai-ejoa.onrender.com'; 
 
 /**
  * Base API service for making HTTP requests
@@ -67,23 +67,59 @@ class ApiService {
 
     // Make request
     try {
+      console.log(`API Request: ${method} ${url}`);
+      if (data) {
+        console.log('Request Data:', JSON.stringify(data));
+      }
+      
       const response = await fetch(url, options);
       
-      // Parse response body
-      const responseData = await response.json();
+      // Check content type to see if response is JSON
+      const contentType = response.headers.get('content-type');
+      
+      let responseData;
+      if (contentType && contentType.includes('application/json')) {
+        // Parse JSON response
+        responseData = await response.json();
+      } else {
+        // Handle non-JSON response
+        const textResponse = await response.text();
+        console.log('Non-JSON Response:', textResponse);
+        
+        // Try to create a meaningful response object
+        responseData = {
+          message: textResponse || 'Server returned non-JSON response',
+          isTextResponse: true
+        };
+      }
+      
+      // Log response for debugging
+      console.log(`API Response (${response.status}):`, responseData);
       
       // Handle non-2xx responses
       if (!response.ok) {
         throw {
           status: response.status,
-          message: responseData.message || 'Request failed',
+          message: responseData.message || `Request failed with status ${response.status}`,
           data: responseData
         };
       }
       
       return responseData;
     } catch (error) {
-      console.error('API request error:', error);
+      // Handle network errors and other exceptions
+      console.error('API Request Error:', error);
+      
+      // Format error consistently
+      if (!error.status) {
+        // This is likely a network or parsing error
+        error = {
+          status: 0,
+          message: error.message || 'Network error occurred',
+          originalError: error
+        };
+      }
+      
       throw error;
     }
   }
