@@ -32,6 +32,7 @@ community-forum/
 - Comments and voting system
 - User karma tracking
 - Enhanced debugging capabilities (in Bullseye Mobile)
+- Modern UI with clean, intuitive interface and splash screen
 
 ## Getting Started
 
@@ -134,6 +135,23 @@ npm run test:web
 npm run test:mobile
 npm run test:bullseye
 ```
+
+## Bullseye Mobile App Specifics
+
+The Bullseye Mobile app is a specialized version of our community forum mobile application with enhanced debugging capabilities and improved error handling.
+
+### Features Specific to Bullseye Mobile
+
+- **Enhanced Debugging**: Advanced logging and diagnostic tools
+- **Error Boundaries**: Graceful handling of errors with fallback UI
+- **Performance Monitoring**: Track component render times and memory usage
+- **Network Status Monitoring**: Check and display network connectivity
+
+### Google Play Submission Checklist
+
+- [x] Splash Screen
+- [x] Privacy Policy
+- [x] Terms and Conditions
 
 ## Contributing
 

@@ -1,0 +1,156 @@
+--------- beginning of system
+03-12 16:59:44.351  1835  5386 I ActivityManager: Changes in 10100 19 to 5, 0 to 56
+03-12 16:59:48.644  1835  1998 I ActivityManager: Start proc 27357:com.bullseye.mobile/u0a717 for next-top-activity {com.bullseye.mobile/com.bullseye.mobile.MainActivity}
+--------- beginning of main
+03-12 16:59:48.658 27357 27357 E bullseye.mobile: Not starting debugger since process cannot load the jdwp agent.
+03-12 16:59:48.673  1835  1988 I ActivityManager: Changes in 10717 20 to 2, 0 to 63
+03-12 16:59:48.687  1835 11002 E VpnManagerService: Exception occured while trying to get the getProxyInfoForUid for knoxvpn uid 10717
+03-12 16:59:48.696  4306  4306 E pageboostd: Received HALT command code 2
+03-12 16:59:48.716  1835  5055 I ActivityManager: Flag disabled. Ignoring finishAttachApplication from uid: 10717. pid: 27357
+03-12 16:59:48.743  3947  3947 E ThemeUtils: View class com.honeyspace.ui.common.iconview.IconViewImpl is an AppCompat widget that can only be used with a Theme.AppCompat theme (or descendant).
+03-12 16:59:48.780 27357 27357 E SoLoader: couldn't find DSO to load: libjscexecutor.so
+03-12 16:59:48.780 27357 27357 E SoLoader: 	SoSource 0: com.facebook.soloader.ApkSoSource[root = /data/data/com.bullseye.mobile/lib-main flags = 1]
+03-12 16:59:48.780 27357 27357 E SoLoader: 	SoSource 1: com.facebook.soloader.DirectorySoSource[root = /data/app/~~1YPC6N5r76hTJWVTi4O-ag==/com.bullseye.mobile-DlN3Jneqq_NasjJk4TbbQA==/lib/arm64 flags = 0]
+03-12 16:59:48.780 27357 27357 E SoLoader: 	SoSource 2: com.facebook.soloader.DirectorySoSource[root = /system/lib64 flags = 2]
+03-12 16:59:48.780 27357 27357 E SoLoader: 	SoSource 3: com.facebook.soloader.DirectorySoSource[root = /vendor/lib64 flags = 2]
+03-12 16:59:48.780 27357 27357 E SoLoader: 	Native lib dir: /data/app/~~1YPC6N5r76hTJWVTi4O-ag==/com.bullseye.mobile-DlN3Jneqq_NasjJk4TbbQA==/lib/arm64
+03-12 16:59:48.780 27357 27357 E SoLoader:  result: 0
+03-12 16:59:48.785  4306  4306 E pageboostd: Received HALT command code 2
+--------- beginning of crash
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: FATAL EXCEPTION: mqt_js
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: Process: com.bullseye.mobile, PID: 27357
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: java.lang.RuntimeException: com.facebook.react.devsupport.JSException: undefined is not a function
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	at com.facebook.react.bridge.DefaultJSExceptionHandler.handleException(DefaultJSExceptionHandler.java:20)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	at com.facebook.react.devsupport.DisabledDevSupportManager.handleException(DisabledDevSupportManager.java:195)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	at com.facebook.react.bridge.CatalystInstanceImpl.onNativeException(CatalystInstanceImpl.java:620)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	at com.facebook.react.bridge.CatalystInstanceImpl.-$$Nest$monNativeException(Unknown Source:0)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	at com.facebook.react.bridge.CatalystInstanceImpl$NativeExceptionHandler.handleException(CatalystInstanceImpl.java:638)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	at com.facebook.react.bridge.queue.MessageQueueThreadHandler.dispatchMessage(MessageQueueThreadHandler.java:29)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	at android.os.Looper.loopOnce(Looper.java:230)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:319)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	at com.facebook.react.bridge.queue.MessageQueueThreadImpl$4.run(MessageQueueThreadImpl.java:228)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	at java.lang.Thread.run(Thread.java:1012)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: Caused by: com.facebook.react.devsupport.JSException: undefined is not a function
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	at com.facebook.jni.NativeRunnable.run(Native Method)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	at android.os.Handler.handleCallback(Handler.java:958)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:99)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	at com.facebook.react.bridge.queue.MessageQueueThreadHandler.dispatchMessage(MessageQueueThreadHandler.java:27)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	... 4 more
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: Caused by: com.facebook.jni.CppException: undefined is not a function
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: TypeError: undefined is not a function
+03-12 16:59:48.807 27357 27393 E AndroidRuntime:     at anonymous (address at index.android.bundle:1:8286)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime:     at loadModuleImplementation (address at index.android.bundle:1:1825)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime:     at guardedLoadModule (address at index.android.bundle:1:1391)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime:     at metroRequire (address at index.android.bundle:1:1027)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime:     at anonymous (address at index.android.bundle:1:8164)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime:     at loadModuleImplementation (address at index.android.bundle:1:1825)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime:     at guardedLoadModule (address at index.android.bundle:1:1350)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime:     at metroRequire (address at index.android.bundle:1:1027)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime:     at global (address at index.android.bundle:1:592)
+03-12 16:59:48.807 27357 27393 E AndroidRuntime: 	... 8 more
+03-12 16:59:48.810  1835 27400 W ActivityManager: crash : com.bullseye.mobile,10717
+03-12 16:59:48.814  1835  1986 I ActivityManager: Showing crash dialog for package com.bullseye.mobile u0
+03-12 16:59:48.815  1835  1986 D ActivityManager: !@AM_BOOT_PROGRESS , ensureBootCompleted booting:false /enableScreen:false /caller:com.android.server.am.ActivityManagerService$UiHandler.handleMessage:2042 android.os.Handler.dispatchMessage:106 
+03-12 16:59:48.826  1835  1997 I ActivityManager: com.samsung.android.dqagent is exempt from freezer
+03-12 16:59:48.836  1835  1998 I ActivityManager: Start proc 27406:com.samsung.android.dqagent/1000 for broadcast {com.samsung.android.dqagent/com.samsung.android.dqagent.receiver.DQADataReceiver}
+03-12 16:59:48.863 27406 27406 E android.dqagent: Not starting debugger since process cannot load the jdwp agent.
+03-12 16:59:48.930  1835  1988 I ActivityManager: Changes in 10075 2 to 19, 63 to 0
+03-12 16:59:48.933  1835  1988 I ActivityManager: Changes in 10717 2 to 18, 63 to 0
+03-12 16:59:48.942 16059 16059 E WindowManager: android.view.WindowLeaked: Activity com.android.packageinstaller.InstallSuccess has leaked window DecorView@aacce8b[InstallSuccess] that was originally added here
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.view.ViewRootImpl.<init>(ViewRootImpl.java:1302)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.view.ViewRootImpl.<init>(ViewRootImpl.java:1279)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.view.WindowManagerGlobal.addView(WindowManagerGlobal.java:566)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.view.WindowManagerImpl.addView(WindowManagerImpl.java:150)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.app.Dialog.show(Dialog.java:506)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at com.android.packageinstaller.InstallSuccess.bindUi(InstallSuccess.java:109)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at com.android.packageinstaller.InstallSuccess.onCreate(InstallSuccess.java:75)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.app.Activity.performCreate(Activity.java:9001)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.app.Activity.performCreate(Activity.java:8970)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.app.Instrumentation.callActivityOnCreate(Instrumentation.java:1456)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:4154)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:4330)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:103)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.app.servertransaction.TransactionExecutor.executeCallbacks(TransactionExecutor.java:139)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:96)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2693)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.os.Looper.loopOnce(Looper.java:230)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.os.Looper.loop(Looper.java:319)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at android.app.ActivityThread.main(ActivityThread.java:9063)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at java.lang.reflect.Method.invoke(Native Method)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:588)
+03-12 16:59:48.942 16059 16059 E WindowManager: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1103)
+03-12 16:59:48.945 16059 16059 E WindowManager: android.view.WindowLeaked: Activity com.android.packageinstaller.InstallSuccess has leaked window DecorView@b0d6555[InstallSuccess] that was originally added here
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.view.ViewRootImpl.<init>(ViewRootImpl.java:1302)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.view.ViewRootImpl.<init>(ViewRootImpl.java:1279)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.view.WindowManagerGlobal.addView(WindowManagerGlobal.java:566)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.view.WindowManagerImpl.addView(WindowManagerImpl.java:150)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.app.Dialog.show(Dialog.java:506)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at com.android.packageinstaller.InstallSuccess.bindUi(InstallSuccess.java:109)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at com.android.packageinstaller.InstallSuccess.onResume(InstallSuccess.java:82)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.app.Instrumentation.callActivityOnResume(Instrumentation.java:1603)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.app.Activity.performResume(Activity.java:9172)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.app.ActivityThread.performResumeActivity(ActivityThread.java:5484)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.app.ActivityThread.handleResumeActivity(ActivityThread.java:5593)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.app.servertransaction.ResumeActivityItem.execute(ResumeActivityItem.java:57)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.app.servertransaction.ActivityTransactionItem.execute(ActivityTransactionItem.java:45)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.app.servertransaction.TransactionExecutor.executeLifecycleState(TransactionExecutor.java:180)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:98)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2693)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.os.Looper.loopOnce(Looper.java:230)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.os.Looper.loop(Looper.java:319)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at android.app.ActivityThread.main(ActivityThread.java:9063)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at java.lang.reflect.Method.invoke(Native Method)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:588)
+03-12 16:59:48.945 16059 16059 E WindowManager: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1103)
+03-12 16:59:48.953  1835  9430 E VpnManagerService: Exception occured while trying to get the getProxyInfoForUid for knoxvpn uid 1000
+03-12 16:59:49.037  3947  3947 E ThemeUtils: View class com.honeyspace.ui.common.iconview.IconViewImpl is an AppCompat widget that can only be used with a Theme.AppCompat theme (or descendant).
+03-12 16:59:49.063  1835  4402 I ActivityManager: Flag disabled. Ignoring finishAttachApplication from uid: 1000. pid: 27406
+03-12 16:59:49.247  1835  4402 I ActivityManager: Killing 25668:com.google.android.apps.turbo:aab/u0a242 (adj 999): empty #33
+03-12 16:59:49.252  1381  1381 E audit   : type=1400 audit(1741766389.251:141989): avc:  denied  { ioctl } for  pid=23952 comm="lowpool[460]" path="/data/data/com.google.android.gms/databases/metadata.db" dev="dm-52" ino=8798 ioctlcmd=0xf522 scontext=u:r:gmscore_app:s0:c512,c768 tcontext=u:object_r:privapp_data_file:s0:c512,c768 tclass=file permissive=0 SEPF_SM-F926N_12_0001 audit_filtered
+03-12 16:59:49.252  1381  1381 E audit   : type=1300 audit(1741766389.251:141989): arch=c00000b7 syscall=29 success=no exit=-13 a0=7a a1=f522 a2=7b887d4880 a3=b400007a32e52ac0 items=0 ppid=1415 pid=23952 auid=4294967295 uid=10249 gid=10249 euid=10249 suid=10249 fsuid=10249 egid=10249 sgid=10249 fsgid=10249 tty=(none) ses=4294967295 comm="lowpool[460]" exe="/system/bin/app_process64" subj=u:r:gmscore_app:s0:c512,c768 key=(null)
+03-12 16:59:49.252  1381  1381 E audit   : type=1327 audit(1741766389.251:141989): proctitle="com.google.android.gms.persistent"
+03-12 16:59:49.275  1835  1989 E WindowManager: win=Window{2d22553 u0 com.google.android.packageinstaller/com.android.packageinstaller.InstallSuccess EXITING} destroySurfaces: appStopped=false cleanupOnResume=false win.mWindowRemovalAllowed=true win.mRemoveOnExit=true win.mViewVisibility=8 caller=com.android.server.wm.WindowState.onExitAnimationDone:5781 com.android.server.wm.WindowStateAnimator.onAnimationFinished:214 com.android.server.wm.WindowState.onAnimationFinished:6011 com.android.server.wm.WindowContainer$$ExternalSyntheticLambda4.onAnimationFinished:0 com.android.server.wm.SurfaceAnimator.lambda$getFinishedCallback$0:140 com.android.server.wm.SurfaceAnimator.$r8$lambda$eYT7rjaBOE8bCIRq043wVzQ_RTM:0 com.android.server.wm.SurfaceAnimator$$ExternalSyntheticLambda1.run:0 
+03-12 16:59:49.283  1835  1989 E WindowManager: win=Window{3685002 u0 com.google.android.packageinstaller/com.android.packageinstaller.InstallSuccess EXITING} destroySurfaces: appStopped=false cleanupOnResume=false win.mWindowRemovalAllowed=true win.mRemoveOnExit=true win.mViewVisibility=8 caller=com.android.server.wm.WindowState.onExitAnimationDone:5781 com.android.server.wm.WindowStateAnimator.onAnimationFinished:214 com.android.server.wm.WindowState.onAnimationFinished:6011 com.android.server.wm.WindowContainer$$ExternalSyntheticLambda4.onAnimationFinished:0 com.android.server.wm.SurfaceAnimator.lambda$getFinishedCallback$0:140 com.android.server.wm.SurfaceAnimator.$r8$lambda$eYT7rjaBOE8bCIRq043wVzQ_RTM:0 com.android.server.wm.SurfaceAnimator$$ExternalSyntheticLambda1.run:0 
+03-12 16:59:49.291  1835  9416 E WindowManager: win=Window{23922d0 u0 com.google.android.packageinstaller/com.android.packageinstaller.DeleteStagedFileOnResult EXITING} destroySurfaces: appStopped=false cleanupOnResume=false win.mWindowRemovalAllowed=true win.mRemoveOnExit=true win.mViewVisibility=8 caller=com.android.server.wm.ActivityRecord.destroySurfaces:7033 com.android.server.wm.ActivityRecord.destroySurfaces:7014 com.android.server.wm.WindowState.onExitAnimationDone:5779 com.android.server.wm.TransitionController.finishTransition:1162 com.android.server.wm.WindowOrganizerController.finishTransition:456 android.window.IWindowOrganizerController$Stub.onTransact:286 com.android.server.wm.WindowOrganizerController.onTransact:219 
+03-12 16:59:49.710  1381  1381 E audit   : type=1400 audit(1741766389.707:141990): avc:  denied  { kill } for  pid=0 comm="swapper/2" capability=5  scontext=u:r:kernel:s0 tcontext=u:r:kernel:s0 tclass=capability permissive=0 SEPF_SM-F926N_12_0001 audit_filtered
+03-12 16:59:50.390  1835  1995 I ActivityManager: Changes in 10100 5 to 15, 56 to 0
+03-12 16:59:50.551  1835 10970 I ActivityManager: Killing 27357:com.bullseye.mobile/u0a717 (adj 1001): crash
+03-12 16:59:50.552  1835 10970 D ActivityManager: proc ProcessRecord{8ee8da3 27357:com.bullseye.mobile/u0a717} already removed. so we skip next process.
+03-12 16:59:50.601  1835  9416 V ActivityManager: Got obituary of 27357:com.bullseye.mobile
+03-12 16:59:50.602  1835  1988 W ActivityManager: setHasOverlayUi called on unknown pid: 27357
+03-12 16:59:50.669  1566  1611 E ANDR-PERF-UTIL: Failed to update node /proc/27357/sched_boost with value 0
+03-12 16:59:50.670  1566  1611 E ANDR-PERF-OPTSHANDLER: can't reset task 27357
+03-12 16:59:50.670  1566  1611 E ANDR-PERF-RESOURCEQS: Failed to reset optimization [3, 32]
+03-12 16:59:51.802  1835  3461 E Pageboost: ioinfo read failed
+03-12 16:59:52.626  1835 12659 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+03-12 16:59:52.738  1835  8787 I ActivityManager: Killing 25416:com.samsung.android.app.telephonyui/1001 (adj 999): empty #33
+03-12 16:59:53.311  1508  1732 E minksocket: MinkIPC_QRTR_Service: client with node 1 port 6a1c went down
+03-12 16:59:53.311  1508  1732 E minksocket: MinkIPC_QRTR_Service: client with node 1 port 6a1d went down
+03-12 16:59:53.312  1508  1732 E minksocket: MinkIPC_QRTR_Service: client with node 1 port 6a1e went down
+03-12 16:59:53.319  1508  1732 E minksocket: MinkIPC_QRTR_Service: client with node 1 port 6a1f went down
+03-12 16:59:53.381  1508  1732 E minksocket: MinkIPC_QRTR_Service: client with node 1 port 6a20 went down
+03-12 16:59:53.702  1835  3461 W System.err: java.io.FileNotFoundException: /proc/27357/io_record_control: open failed: ENOENT (No such file or directory)
+03-12 16:59:53.703  1835  3461 W System.err: 	at libcore.io.IoBridge.open(IoBridge.java:574)
+03-12 16:59:53.703  1835  3461 W System.err: 	at java.io.FileOutputStream.<init>(FileOutputStream.java:259)
+03-12 16:59:53.703  1835  3461 W System.err: 	at java.io.FileOutputStream.<init>(FileOutputStream.java:208)
+03-12 16:59:53.703  1835  3461 W System.err: 	at java.io.FileWriter.<init>(FileWriter.java:96)
+03-12 16:59:53.703  1835  3461 W System.err: 	at com.android.server.am.Pageboost$IoRecord.write(Pageboost.java:1711)
+03-12 16:59:53.703  1835  3461 W System.err: 	at com.android.server.am.Pageboost$IoRecord.getResultFromKernel(Pageboost.java:1935)
+03-12 16:59:53.703  1835  3461 W System.err: 	at com.android.server.am.Pageboost$PageboostHandler.handleMessage(Pageboost.java:2463)
+03-12 16:59:53.703  1835  3461 W System.err: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+03-12 16:59:53.703  1835  3461 W System.err: 	at android.os.Looper.loopOnce(Looper.java:230)
+03-12 16:59:53.703  1835  3461 W System.err: 	at android.os.Looper.loop(Looper.java:319)
+03-12 16:59:53.703  1835  3461 W System.err: 	at android.os.HandlerThread.run(HandlerThread.java:67)
+03-12 16:59:53.703  1835  3461 W System.err: 	at com.android.server.ServiceThread.run(ServiceThread.java:46)
+03-12 16:59:53.704  1835  3461 W System.err: Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+03-12 16:59:53.704  1835  3461 W System.err: 	at libcore.io.Linux.open(Native Method)
+03-12 16:59:53.704  1835  3461 W System.err: 	at libcore.io.ForwardingOs.open(ForwardingOs.java:563)
+03-12 16:59:53.704  1835  3461 W System.err: 	at libcore.io.BlockGuardOs.open(BlockGuardOs.java:274)
+03-12 16:59:53.704  1835  3461 W System.err: 	at libcore.io.IoBridge.open(IoBridge.java:560)
+03-12 16:59:53.704  1835  3461 W System.err: 	... 11 more
+03-12 16:59:53.704  1835  3461 E Pageboost: StopRecording Failed
+03-12 16:59:53.707  1835  3461 E Pageboost: captureFinished fail
+03-12 16:59:54.075  1835  1991 E Watchdog: !@Sync: 686 heap: 84 / 104 FD: 1138 [2025-03-12 16:59:54.074]

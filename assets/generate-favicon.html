@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate Favicon</title>
+  <script>
+    window.onload = function() {
+      var canvas = document.getElementById('favicon');
+      var ctx = canvas.getContext('2d');
+      
+      // Fill background
+      ctx.fillStyle = '#FF4500';  // Bullseye theme color
+      ctx.fillRect(0, 0, 64, 64);
+      
+      // Draw a 'B' in the center
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 40px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('B', 32, 32);
+      
+      // Show the image to save
+      var img = document.getElementById('favicon-img');
+      img.src = canvas.toDataURL();
+      
+      document.getElementById('instructions').textContent = 
+        'Right-click on the image above and select "Save Image As..." to save as favicon.png in the assets folder';
+    }
+  </script>
+</head>
+<body>
+  <h1>Bullseye Favicon Generator</h1>
+  <canvas id="favicon" width="64" height="64" style="display: none;"></canvas>
+  <img id="favicon-img" style="border: 1px solid #ccc; width: 64px; height: 64px;">
+  <p id="instructions"></p>
+</body>
+</html>

@@ -18,15 +18,22 @@
     "test:mobile": "cd packages/mobile && npm test",
     "test:bullseye": "cd packages/bullseye-mobile && npm test",
     "android:bullseye": "cd packages/bullseye-mobile && npm run android",
-    "ios:bullseye": "cd packages/bullseye-mobile && npm run ios"
+    "ios:bullseye": "cd packages/bullseye-mobile && npm run ios",
+    "expo:build:android": "cd packages/bullseye-mobile && expo build:android",
+    "expo:build:ios": "cd packages/bullseye-mobile && expo build:ios"
   },
   "keywords": [
     "forum",
     "community",
     "monorepo",
     "react",
-    "react-native"
+    "react-native",
+    "mobile"
   ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "engines": {
+    "node": ">=14",
+    "npm": ">=6"
+  }
 }

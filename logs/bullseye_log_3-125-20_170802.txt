@@ -1,0 +1,13 @@
+--------- beginning of main
+03-12 17:08:15.601  1381  1381 E audit   : type=1400 audit(1741766895.599:142048): avc:  denied  { ioctl } for  pid=23952 comm="lowpool[488]" path="/data/data/com.google.android.gms/databases/rmq.db" dev="dm-52" ino=6745 ioctlcmd=0xf522 scontext=u:r:gmscore_app:s0:c512,c768 tcontext=u:object_r:privapp_data_file:s0:c512,c768 tclass=file permissive=0 SEPF_SM-F926N_12_0001 audit_filtered
+03-12 17:08:15.601  1381  1381 E audit   : type=1300 audit(1741766895.599:142048): arch=c00000b7 syscall=29 success=no exit=-13 a0=68 a1=f522 a2=7b887d4880 a3=b400007a32e736c0 items=0 ppid=1415 pid=23952 auid=4294967295 uid=10249 gid=10249 euid=10249 suid=10249 fsuid=10249 egid=10249 sgid=10249 fsgid=10249 tty=(none) ses=4294967295 comm="lowpool[488]" exe="/system/bin/app_process64" subj=u:r:gmscore_app:s0:c512,c768 key=(null)
+03-12 17:08:15.601  1381  1381 E audit   : type=1327 audit(1741766895.599:142048): proctitle="com.google.android.gms.persistent"
+--------- beginning of system
+03-12 17:08:15.654  1835  4304 D ActivityManager: unpendingScheduleServiceRestart: u=10328, drop=false
+03-12 17:08:24.393  1835  1991 E Watchdog: !@Sync: 703 heap: 101 / 104 FD: 1137 [2025-03-12 17:08:24.392]
+03-12 17:08:33.727  1835 10970 I ActivityManager: Changes in 10059 10 to 5, 0 to 56
+03-12 17:08:33.755  1835  9430 I ActivityManager: Changes in 10059 5 to 10, 56 to 0
+03-12 17:08:49.758  1381  1381 E audit   : type=1400 audit(1741766929.755:142049): avc:  denied  { kill } for  pid=0 comm="swapper/2" capability=5  scontext=u:r:kernel:s0 tcontext=u:r:kernel:s0 tclass=capability permissive=0 SEPF_SM-F926N_12_0001 audit_filtered
+03-12 17:08:54.416  1835  1991 E Watchdog: !@Sync: 704 heap: 102 / 104 FD: 1137 [2025-03-12 17:08:54.415]
+03-12 17:09:24.434  1835  1991 E Watchdog: !@Sync: 705 heap: 103 / 104 FD: 1148 [2025-03-12 17:09:24.433]
+03-12 17:09:49.764  1381  1381 E audit   : type=1400 audit(1741766989.759:142050): avc:  denied  { kill } for  pid=0 comm="swapper/2" capability=5  scontext=u:r:kernel:s0 tcontext=u:r:kernel:s0 tclass=capability permissive=0 SEPF_SM-F926N_12_0001 audit_filtered
