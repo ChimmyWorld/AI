@@ -1,5 +1,5 @@
-import React from 'react';,
-import ErrorBoundary from './utils/GlobalErrorHandler'; { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import ErrorBoundary from './utils/GlobalErrorHandler';
 import { SafeAreaView, StatusBar, StyleSheet, Text, View, Platform, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './hooks/useAuth';
@@ -64,8 +64,8 @@ const HomeScreen = ({ onLogout, onViewPost, onDebug }) => {
               <Text style={styles.postTitle}>{post.title}</Text>
               <Text style={styles.postAuthor}>Posted by {post.author}</Text>
               <View style={styles.postStats}>
-                <Text style={styles.postStatItem}>?§Ô∏è {post.likes}</Text>
-                <Text style={styles.postStatItem}>?í¨ {post.comments}</Text>
+                <Text style={styles.postStatItem}>?ÔøΩÔ∏è {post.likes}</Text>
+                <Text style={styles.postStatItem}>?ÔøΩÔøΩ {post.comments}</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -103,10 +103,10 @@ const PostDetailScreen = ({ onBack }) => (
       
       <View style={styles.postActions}>
         <TouchableOpacity style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>?§Ô∏è Like</Text>
+          <Text style={styles.actionButtonText}>?ÔøΩÔ∏è Like</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton}>
-          <Text style={styles.actionButtonText}>?í¨ Comment</Text>
+          <Text style={styles.actionButtonText}>?ÔøΩÔøΩ Comment</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton}>
           <Text style={styles.actionButtonText}>‚§¥Ô∏è Share</Text>
@@ -574,4 +574,3 @@ const styles = StyleSheet.create({
 });
 
 export default App;
-

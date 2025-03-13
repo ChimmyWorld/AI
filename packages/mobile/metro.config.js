@@ -13,9 +13,8 @@ defaultConfig.resolver.assetExts.push(
   'jpg',
   'jpeg',
   'gif',
-  'webp',
-  // Add any custom extensions that might be causing errors
-  'js'
+  'webp'
+  // REMOVED: 'js' - This was causing the HMRClient.setup() error
 );
 
 defaultConfig.resolver.sourceExts = [
