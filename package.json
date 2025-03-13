@@ -36,5 +36,9 @@
   "engines": {
     "node": ">=14",
     "npm": ">=6"
+  },
+  "dependencies": {
+    "expo-linear-gradient": "^14.0.2",
+    "react-native-svg": "^15.11.2"
   }
 }

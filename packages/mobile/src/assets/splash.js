@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { safeCall } from '../utils/errorUtils';
+import { LinearGradient } from 'expo-linear-gradient';
+import TargetIcon from './TargetIcon';
 
 const BullseyeSplash = ({ onComplete }) => {
   const opacityAnim = React.useRef(new Animated.Value(0)).current;
@@ -32,7 +34,12 @@ const BullseyeSplash = ({ onComplete }) => {
   }, [onComplete]); // Add onComplete to dependency array
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['#FF8C00', '#FF6347', '#FF4500']}
+      style={styles.container}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+    >
       <Animated.View 
         style={[
           styles.content,
@@ -42,58 +49,22 @@ const BullseyeSplash = ({ onComplete }) => {
           }
         ]}
       >
-        <View style={styles.logo}>
-          <Text style={styles.logoText}>B</Text>
-        </View>
-        <Text style={styles.title}>Bullseye</Text>
-        <Text style={styles.subtitle}>Your Community Forum</Text>
+        <TargetIcon size={120} />
       </Animated.View>
-    </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
   },
   content: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  logo: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#FF4500',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  logoText: {
-    color: 'white',
-    fontSize: 54,
-    fontWeight: 'bold',
-  },
-  title: {
-    fontSize: 38,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#666',
   }
 });
 
 export default BullseyeSplash;
-
-
