@@ -1,8 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, Animated, Easing, Image } from 'react-native';
 import { safeCall } from '../utils/errorUtils';
-import { LinearGradient } from 'expo-linear-gradient';
-import TargetIcon from './TargetIcon';
 
 const BullseyeSplash = ({ onComplete }) => {
   const opacityAnim = React.useRef(new Animated.Value(0)).current;
@@ -34,12 +32,7 @@ const BullseyeSplash = ({ onComplete }) => {
   }, [onComplete]); // Add onComplete to dependency array
 
   return (
-    <LinearGradient
-      colors={['#FF8C00', '#FF6347', '#FF4500']}
-      style={styles.container}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-    >
+    <View style={[styles.container, {backgroundColor: '#FF4500'}]}>
       <Animated.View 
         style={[
           styles.content,
@@ -49,9 +42,11 @@ const BullseyeSplash = ({ onComplete }) => {
           }
         ]}
       >
-        <TargetIcon size={120} />
+        <View style={styles.circle}>
+          <Text style={styles.text}>B</Text>
+        </View>
       </Animated.View>
-    </LinearGradient>
+    </View>
   );
 };
 
@@ -64,6 +59,19 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  circle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#E53935',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  text: {
+    color: 'white',
+    fontSize: 60,
+    fontWeight: 'bold',
   }
 });
 

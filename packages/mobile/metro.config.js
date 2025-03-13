@@ -27,4 +27,12 @@ defaultConfig.resolver.sourceExts = [
   'json'
 ];
 
+// Avoid module naming collisions by excluding other frontend folders
+defaultConfig.resolver.blacklistRE = [
+  // Exclude all other frontend folders that might cause naming collisions
+  /.*bullseye-mobile.*/,
+  /.*packages\/web.*/,
+  /.*frontend(?!\/node_modules).*/,  // Exclude frontend folders but not node_modules inside them
+];
+
 module.exports = defaultConfig;

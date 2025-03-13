@@ -6,9 +6,15 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "splash": {
+      "image": "./assets/splashscreen_logo.png",
+      "backgroundColor": "#FF4500",
+      "resizeMode": "contain"
+    },
     "android": {
       "package": "com.bullseye.mobile",
       "versionCode": 1,
+      "compileSdkVersion": 33,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
