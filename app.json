@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Bullseye",
+    "slug": "bullseye-mobile",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FF4500"
+    },
+    "android": {
+      "package": "com.bullseye.mobile",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "permissions": [
+        "android.permission.INTERNET"
+      ],
+      "compileSdkVersion": 33
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d7dab3d0-6eff-43c6-bb8a-d6da742af13b"
+      }
+    }
+  }
+}
