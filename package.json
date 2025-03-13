@@ -1,0 +1,32 @@
+{
+  "name": "community-forum",
+  "version": "1.0.0",
+  "description": "Mono-repo for Community Forum web and mobile applications",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start:web": "cd packages/web && npm start",
+    "start:mobile": "cd packages/mobile && npm start",
+    "start:bullseye": "cd packages/bullseye-mobile && npm start",
+    "dev:web": "cd packages/web && npm run dev",
+    "build:web": "cd packages/web && npm run build",
+    "build:mobile": "cd packages/mobile && npm run build:web",
+    "build:bullseye": "cd packages/bullseye-mobile && npm run build:web",
+    "test:web": "cd packages/web && npm test",
+    "test:mobile": "cd packages/mobile && npm test",
+    "test:bullseye": "cd packages/bullseye-mobile && npm test",
+    "android:bullseye": "cd packages/bullseye-mobile && npm run android",
+    "ios:bullseye": "cd packages/bullseye-mobile && npm run ios"
+  },
+  "keywords": [
+    "forum",
+    "community",
+    "monorepo",
+    "react",
+    "react-native"
+  ],
+  "author": "",
+  "license": "ISC"
+}
